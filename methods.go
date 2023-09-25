@@ -10,7 +10,7 @@ import (
 
 func (data *DataSet) MoveCaptionsToImages() {
 	// TODO: Move captions to images
-	rogPrinter.Debug("Not implemented yet")
+	roggyPrinter.Debug("Not implemented yet")
 }
 
 func (data *DataSet) CheckIfCaptionsExist() {
@@ -18,7 +18,7 @@ func (data *DataSet) CheckIfCaptionsExist() {
 		if image.Caption.Filename != "" {
 			continue
 		}
-		rogPrinter.Errorf("Caption for image %s does not exist", image.Filename)
+		roggyPrinter.Errorf("Caption for image %s does not exist", image.Filename)
 	}
 }
 
@@ -49,8 +49,8 @@ func (data *DataSet) WriteFiles() {
 
 		directory, _ := filepath.Split(path)
 
-		rogPrinter.Debugf("Filename: %s", fileName)
-		rogPrinter.Debugf("Extension: %s", extension)
+		roggyPrinter.Debugf("Filename: %s", fileName)
+		roggyPrinter.Debugf("Extension: %s", extension)
 
 		if extension == ".txt" {
 			tempCaption = append(tempCaption, Caption{Filename: currentEntry, Extension: extension, Directory: directory})
@@ -59,8 +59,8 @@ func (data *DataSet) WriteFiles() {
 
 		if _, ok := data.Images[fileName]; !ok {
 			data.Images[fileName] = Image{Filename: currentEntry, Extension: extension, Directory: directory, Caption: Caption{}}
-			rogPrinter.Infof("Added file: %s to the dataset", currentEntry)
-			rogPrinter.Debugf("Directory: %s", directory)
+			roggyPrinter.Infof("Added file: %s to the dataset", currentEntry)
+			roggyPrinter.Debugf("Directory: %s", directory)
 		}
 
 		return nil
@@ -76,12 +76,12 @@ func (data *DataSet) appendCaptions(c []Caption) {
 	for _, caption := range c {
 		fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
 		if img, ok := data.Images[fileName]; ok {
-			rogPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, fileName)
-			rogPrinter.Debugf("Directory: %s", caption.Directory)
+			roggyPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, fileName)
+			roggyPrinter.Debugf("Directory: %s", caption.Directory)
 			img.Caption = caption
 			data.Images[fileName] = img
 		} else {
-			rogPrinter.Noticef("Image file for caption %s does not exist", caption.Filename)
+			roggyPrinter.Noticef("Image file for caption %s does not exist", caption.Filename)
 		}
 	}
 }

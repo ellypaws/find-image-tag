@@ -1,3 +1,12 @@
+github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 h1:ZBbLwSJqkHBuFDA6DUhhse0IGJ7T5bemHyNILUjvOq4=
+github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2/go.mod h1:VSw57q4QFiWDbRnjdX8Cb3Ow0SFncRw+bA/ofY6Q83w=
+github.com/fatih/color v1.15.0 h1:kOqh6YHBtK8aywxGerMG2Eq3H6Qgoqeo13Bk2Mv/nBs=
+github.com/fatih/color v1.15.0/go.mod h1:0h5ZqXfHYED7Bhv2ZJamyIOUej9KtShiJESRwBDUSsw=
+github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=
+github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovkB8vQcUbaXHg=
+github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
+github.com/mattn/go-isatty v0.0.19 h1:JITubQf0MOLdlGRuRq+jtsDlekdYPia9ZFsB8h/APPA=
+github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/nokusukun/roggy v0.0.0-20200510005836-b37cbcdb702a h1:gp0NLsa37nu/2jvp6x13nu78WnFcz1WC6pwM1fufWbc=
 github.com/nokusukun/roggy v0.0.0-20200510005836-b37cbcdb702a/go.mod h1:zhOIaNnhE5sfibH2NQ1vQV9pHZrIamupud5QMbO4OFk=
 github.com/nokusukun/roggy v0.0.0-20230925130009-598b69a7efde h1:Hc85Gjv2MSInbDJjMBgWjpF1+J7XsCyrNqE7l8BuEIs=
@@ -8,3 +17,7 @@ github.com/nokusukun/roggy v0.1.4 h1:cggah5TqsbspswAgrX1jwDw8zFtulGACg+qbRMaH0zY
 github.com/nokusukun/roggy v0.1.4/go.mod h1:9ooA750dwDpXML+zT8zSVyZZlM86U41F87a5WDYRfZ8=
 github.com/nokusukun/stemp v0.0.0-20190721151213-e6029a1e4f9a h1:5EDoDclMfnmdweHz9vG9vX67uwSEtZmd4FtFDvACCqM=
 github.com/nokusukun/stemp v0.0.0-20190721151213-e6029a1e4f9a/go.mod h1:NuZxGzwWbV+jAl2r23XAq9QrIAnfnUANSw1aATR4Tww=
+golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.12.0 h1:CM0HF96J0hcLAwsHPJZjfdNzs0gftsLfgKt57wWHJ0o=
+golang.org/x/sys v0.12.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
