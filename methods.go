@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -46,6 +47,49 @@ func (data *DataSet) CaptionsToImages(move bool) {
 			} else {
 				roggyPrinter.Infof("File linked successfully from %s to %s", from, to)
 			}
+		}
+	}
+}
+
+func (data *DataSet) replaceSpaces() {
+	re := regexp.MustCompile(`(\w)\s+(\w)`)
+
+	for _, image := range data.Images {
+		captionFile := filepath.Join(image.Caption.Directory, image.Caption.Filename)
+
+		file, err := os.Open(captionFile)
+		if err != nil {
+			roggyPrinter.Errorf("Error opening file: %v", err)
+			continue
+		}
+
+		reader := bufio.NewReader(file)
+		content, _ := reader.ReadString('\n')
+		file.Close()
+
+		newContent := re.ReplaceAllString(content, "${1}_${2}")
+
+		err = os.Remove(captionFile)
+		if err != nil {
+			roggyPrinter.Errorf("Error deleting file: %v", err)
+			continue
+		}
+
+		file, err = os.Create(captionFile)
+		if err != nil {
+			roggyPrinter.Errorf("Error creating file: %v", err)
+			continue
+		}
+
+		writer := bufio.NewWriter(file)
+		_, err = writer.WriteString(newContent + "\n")
+		writer.Flush()
+		file.Close()
+
+		if err != nil {
+			roggyPrinter.Errorf("Error writing file: %v", err)
+		} else {
+			roggyPrinter.Infof("Replaced spaces with underscores for file: %s", captionFile)
 		}
 	}
 }

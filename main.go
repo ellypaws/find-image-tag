@@ -43,6 +43,7 @@ func (data *DataSet) promptOption() {
 	roggyPrinter.Infof("")
 	roggyPrinter.Infof("[%i][M]ove captions to the image files", data.countImagesWithCaptions())
 	roggyPrinter.Infof("[%i]C[o]py captions to the image files", data.countImagesWithCaptions())
+	roggyPrinter.Infof("Replace spaces with [_]")
 	choice, _ := getInput("Enter your choice: ", reader)
 
 	switch strings.ToLower(choice) {
@@ -64,6 +65,8 @@ func (data *DataSet) promptOption() {
 		data.appendCaptions()
 	case "i":
 		data.checkForMissingImages()
+	case "_":
+		data.replaceSpaces()
 	case "q":
 		return
 	default:
