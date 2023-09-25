@@ -4,12 +4,18 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/nokusukun/roggy"
 	"os"
 	"strings"
 )
 
+var rogPrinter = roggy.Printer("main-service")
+
 func main() {
 	// Read all the filenames of image files in the image directory
+
+	roggy.LogLevel = roggy.TypeDebug
+	rogPrinter.Debug("Starting main service")
 
 	data := DataSet{
 		Images: make(map[string]Image),
@@ -21,6 +27,7 @@ func main() {
 func (data *DataSet) promptOption() {
 	reader := bufio.NewReader(os.Stdin)
 
+	roggy.Flush()
 	fmt.Println("--- Image Captioning ---")
 	fmt.Println("[A]dd files to the dataset")
 	fmt.Println("[C]heck if captions exist")

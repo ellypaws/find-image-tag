@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -11,7 +10,7 @@ import (
 
 func (data *DataSet) MoveCaptionsToImages() {
 	// TODO: Move captions to images
-	log.Print("Not implemented yet")
+	rogPrinter.Debug("Not implemented yet")
 }
 
 func (data *DataSet) CheckIfCaptionsExist() {
@@ -19,7 +18,7 @@ func (data *DataSet) CheckIfCaptionsExist() {
 		if image.Caption.Filename != "" {
 			continue
 		}
-		fmt.Println("Caption for image", image.Filename, "does not exist")
+		rogPrinter.Errorf("Caption for image %s does not exist", image.Filename)
 	}
 }
 
@@ -50,13 +49,18 @@ func (data *DataSet) WriteFiles() {
 
 		directory, _ := filepath.Split(path)
 
+		rogPrinter.Debugf("Filename: %s", fileName)
+		rogPrinter.Debugf("Extension: %s", extension)
+
 		if extension == ".txt" {
 			tempCaption = append(tempCaption, Caption{Filename: currentEntry, Extension: extension, Directory: directory})
 		}
 
-		data.Images[fileName] = Image{Filename: currentEntry, Extension: extension, Directory: directory, Caption: Caption{}}
-
-		fmt.Println("Added file:", currentEntry, "to the dataset")
+		if _, ok := data.Images[fileName]; !ok {
+			data.Images[fileName] = Image{Filename: currentEntry, Extension: extension, Directory: directory, Caption: Caption{}}
+			rogPrinter.Infof("Added file: %s to the dataset", currentEntry)
+			rogPrinter.Debugf("Directory: %s", directory)
+		}
 
 		return nil
 	})
@@ -71,11 +75,12 @@ func (data *DataSet) appendCaptions(c []Caption) {
 	for _, caption := range c {
 		fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
 		if img, ok := data.Images[fileName]; ok {
-			fmt.Println("Appending the caption file:", caption.Filename, "to the image file:", fileName)
+			rogPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, fileName)
+			rogPrinter.Debugf("Directory: %s", caption.Directory)
 			img.Caption = caption
 			data.Images[fileName] = img
 		} else {
-			fmt.Println("Image file for caption", caption.Filename, "does not exist")
+			rogPrinter.Noticef("Image file for caption %s does not exist", caption.Filename)
 		}
 	}
 }
