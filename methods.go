@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/nokusukun/roggy"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -135,10 +136,14 @@ func (data *DataSet) WriteFiles() {
 			return nil
 		}
 
+		fileLogPrinter := roggy.Printer(fmt.Sprintf("file-handler: %v", fileName))
+		tempCaptionLogPrinter := roggy.Printer(fmt.Sprintf("temp-caption-handler: %v", currentEntry))
+		imageLogPrinter := roggy.Printer(fmt.Sprintf("image-handler: %v", currentEntry))
+
 		directory, _ := filepath.Split(path)
 
-		roggyPrinter.Debugf("Filename: %s", fileName)
-		roggyPrinter.Debugf("Extension: %s", extension)
+		fileLogPrinter.Debugf("Filename: %s", fileName)
+		fileLogPrinter.Debugf("Extension: %s", extension)
 
 		if extension == ".txt" {
 			if _, ok := data.TempCaption[fileName]; !ok {
@@ -147,10 +152,10 @@ func (data *DataSet) WriteFiles() {
 				}
 				newCaption := Caption{Filename: currentEntry, Extension: extension, Directory: directory}
 				data.TempCaption[fileName] = &newCaption
-				roggyPrinter.Infof("Added file: %s to the temporary caption dataset", currentEntry)
-				roggyPrinter.Debugf("Directory: %s", directory)
+				tempCaptionLogPrinter.Infof("Added file: %s to the temporary caption dataset", currentEntry)
+				tempCaptionLogPrinter.Debugf("Directory: %s", directory)
 			} else {
-				roggyPrinter.Noticef("Caption file in temporary caption dataset for image %s already exists", fileName)
+				tempCaptionLogPrinter.Noticef("Caption file in temporary caption dataset for image %s already exists", fileName)
 			}
 			return nil
 		}
@@ -158,8 +163,8 @@ func (data *DataSet) WriteFiles() {
 		if _, ok := data.Images[fileName]; !ok {
 			newImg := Image{Filename: currentEntry, Extension: extension, Directory: directory, Caption: Caption{}}
 			data.Images[fileName] = &newImg
-			roggyPrinter.Infof("Added file: %s to the dataset", currentEntry)
-			roggyPrinter.Debugf("Directory: %s", directory)
+			imageLogPrinter.Infof("Added file: %s to the dataset", currentEntry)
+			imageLogPrinter.Debugf("Directory: %s", directory)
 		}
 
 		return nil
@@ -174,17 +179,32 @@ func (data *DataSet) WriteFiles() {
 func (data *DataSet) appendCaptions() {
 	for _, caption := range data.TempCaption {
 		fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
+		captionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", caption.Filename))
 		if img, ok := data.Images[fileName]; ok {
-			roggyPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, fileName)
-			roggyPrinter.Debugf("Directory: %s", caption.Directory)
+			// check if caption already exists and if directories match
+			if img.Caption.Filename != "" {
+				if img.Caption.Directory == caption.Directory {
+					captionLogPrinter.Noticef("Caption file for image %s already exists", fileName)
+					delete(data.TempCaption, fileName)
+					continue
+				} else {
+					captionLogPrinter.Noticef("Caption file for image %s already exists but directories do not match", fileName)
+					captionLogPrinter.Debugf("Image directory: %s", img.Directory)
+					captionLogPrinter.Debugf("Old Caption directory: %s", img.Caption.Directory)
+					captionLogPrinter.Debugf("New Caption directory: %s", caption.Directory)
+					captionLogPrinter.Noticef("Assuming that we want the new caption file")
+				}
+			}
+			captionLogPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, fileName)
+			captionLogPrinter.Debugf("Directory: %s", caption.Directory)
 			img.Caption = *caption
 			data.Images[fileName] = img
-
-			// now remove from the temp caption dataset
-			delete(data.TempCaption, fileName)
 		} else {
-			roggyPrinter.Noticef("Image file for caption %s does not exist", caption.Filename)
+			captionLogPrinter.Noticef("Image file for caption %s does not exist", caption.Filename)
+			return
 		}
+		// now remove from the temp caption dataset
+		delete(data.TempCaption, fileName)
 	}
 }
 
@@ -214,6 +234,16 @@ func (data *DataSet) countImagesWithoutCaptions() int {
 	count := 0
 	for _, image := range data.Images {
 		if image.Caption.Filename == "" {
+			count++
+		}
+	}
+	return count
+}
+
+func (data *DataSet) countCaptionDirectoryMatchImageDirectory() int {
+	count := 0
+	for _, image := range data.Images {
+		if image.Caption.Directory == image.Directory {
 			count++
 		}
 	}
