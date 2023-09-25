@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 )
 
@@ -41,37 +42,40 @@ func (data *DataSet) WriteFiles() {
 		directoryToRead = "."
 	}
 
-	dirEntry, _ := os.ReadDir(directoryToRead)
-	for _, entry := range dirEntry {
-		t := entry.Type()
-		fmt.Println(t.String())
-		if entry.IsDir() {
-			continue
+	extRegex, _ := regexp.Compile(regex)
+
+	err := filepath.Walk(directoryToRead, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
 		}
-		currentEntry := entry.Name()
-		extRegex, _ := regexp.Compile(regex)
+
+		currentEntry := info.Name()
 		extension := extRegex.FindString(currentEntry)
 		fileName := currentEntry[:len(currentEntry)-len(extension)]
 		if !extRegex.MatchString(currentEntry) {
-			continue
+			return nil
 		}
-		// check extension
+
+		directory, _ := filepath.Split(path)
 
 		if extension == ".txt" {
-			// check if image exists
 			if _, ok := data.Images[fileName]; !ok {
 				fmt.Println("Image file for caption", currentEntry, "does not exist")
 			}
 			if img, ok := data.Images[fileName]; ok {
 				fmt.Println("Appending the caption file:", currentEntry, "to the image file:", fileName)
-				img.Caption = Caption{Filename: currentEntry, Extension: extension}
+				img.Caption = Caption{Filename: currentEntry, Extension: extension, Directory: directory}
 				data.Images[fileName] = img
 			}
-			continue
+			return nil
 		}
 
-		data.Images[fileName] = Image{Filename: currentEntry, Caption: Caption{}}
+		data.Images[fileName] = Image{Filename: currentEntry, Extension: extension, Directory: directory, Caption: Caption{}}
 
+		return nil
+	})
+	if err != nil {
+		return
 	}
 }
 
