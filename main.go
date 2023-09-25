@@ -19,7 +19,7 @@ func main() {
 	roggyPrinter.Debug("Starting main service")
 
 	data := DataSet{
-		Images: make(map[string]Image),
+		Images: make(map[string]*Image),
 	}
 
 	data.promptOption()
@@ -36,6 +36,8 @@ func (data *DataSet) promptOption() {
 	roggyPrinter.Infof("[P]rint the dataset as JSON")
 	roggyPrinter.Infof("[R]eset the dataset")
 	roggyPrinter.Infof("[W]rite the dataset as a JSON file")
+	roggyPrinter.Infof("Append [t]ext files to matching images")
+	roggyPrinter.Infof("Check for captions without matching [i]mages")
 	roggyPrinter.Infof("[Q]uit")
 	choice, _ := getInput("Enter your choice: ", reader)
 
@@ -51,7 +53,11 @@ func (data *DataSet) promptOption() {
 	case "w":
 		data.writeJson()
 	case "r":
-		data.Images = make(map[string]Image)
+		data.Images = make(map[string]*Image)
+	case "t":
+		data.appendCaptions()
+	case "i":
+		data.checkForMissingImages()
 	case "q":
 		return
 	default:

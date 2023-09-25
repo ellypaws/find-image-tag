@@ -22,6 +22,15 @@ func (data *DataSet) CheckIfCaptionsExist() {
 	}
 }
 
+func (data *DataSet) checkForMissingImages() {
+	for _, caption := range data.TempCaption {
+		fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
+		if _, ok := data.Images[fileName]; !ok {
+			roggyPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
+		}
+	}
+}
+
 func (data *DataSet) WriteFiles() {
 	regex := `(?i)\.(jpe?g|png|gif|bmp|txt)$`
 	var directoryToRead string
@@ -32,8 +41,6 @@ func (data *DataSet) WriteFiles() {
 	}
 
 	extRegex, _ := regexp.Compile(regex)
-
-	var tempCaption []Caption
 
 	err := filepath.Walk(directoryToRead, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
@@ -53,12 +60,23 @@ func (data *DataSet) WriteFiles() {
 		roggyPrinter.Debugf("Extension: %s", extension)
 
 		if extension == ".txt" {
-			tempCaption = append(tempCaption, Caption{Filename: currentEntry, Extension: extension, Directory: directory})
+			if _, ok := data.TempCaption[fileName]; !ok {
+				if data.TempCaption == nil {
+					data.TempCaption = make(map[string]*Caption)
+				}
+				newCaption := Caption{Filename: currentEntry, Extension: extension, Directory: directory}
+				data.TempCaption[fileName] = &newCaption
+				roggyPrinter.Infof("Added file: %s to the temporary caption dataset", currentEntry)
+				roggyPrinter.Debugf("Directory: %s", directory)
+			} else {
+				roggyPrinter.Noticef("Caption file in temporary caption dataset for image %s already exists", fileName)
+			}
 			return nil
 		}
 
 		if _, ok := data.Images[fileName]; !ok {
-			data.Images[fileName] = Image{Filename: currentEntry, Extension: extension, Directory: directory, Caption: Caption{}}
+			newImg := Image{Filename: currentEntry, Extension: extension, Directory: directory, Caption: Caption{}}
+			data.Images[fileName] = &newImg
 			roggyPrinter.Infof("Added file: %s to the dataset", currentEntry)
 			roggyPrinter.Debugf("Directory: %s", directory)
 		}
@@ -69,17 +87,20 @@ func (data *DataSet) WriteFiles() {
 		return
 	}
 
-	data.appendCaptions(tempCaption)
+	data.appendCaptions()
 }
 
-func (data *DataSet) appendCaptions(c []Caption) {
-	for _, caption := range c {
+func (data *DataSet) appendCaptions() {
+	for _, caption := range data.TempCaption {
 		fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
 		if img, ok := data.Images[fileName]; ok {
 			roggyPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, fileName)
 			roggyPrinter.Debugf("Directory: %s", caption.Directory)
-			img.Caption = caption
+			img.Caption = *caption
 			data.Images[fileName] = img
+
+			// now remove from the temp caption dataset
+			delete(data.TempCaption, fileName)
 		} else {
 			roggyPrinter.Noticef("Image file for caption %s does not exist", caption.Filename)
 		}

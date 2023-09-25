@@ -18,5 +18,6 @@ type Caption struct {
 }
 
 type DataSet struct {
-	Images map[string]Image
+	Images      map[string]*Image
+	TempCaption map[string]*Caption
 }
