@@ -202,7 +202,7 @@ func (data *DataSet) appendCaptions() {
 			data.Images[fileName] = img
 		} else {
 			captionLogPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
-			return
+			continue
 		}
 		// now remove from the temp caption dataset
 		delete(data.TempCaption, fileName)
