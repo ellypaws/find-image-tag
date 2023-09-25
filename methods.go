@@ -163,7 +163,8 @@ func (data *DataSet) WriteFiles() {
 		}
 
 		if _, ok := data.Images[fileName]; !ok {
-			newImg := Image{Filename: currentEntry, Extension: extension, Directory: directory, Caption: Caption{}}
+			newImg := Image{Filename: currentEntry, Extension: extension, Directory: directory}
+			newImg.InitCaption()
 			data.Images[fileName] = &newImg
 			imageLogPrinter.Infof("Added file: %s to the dataset", currentEntry)
 			imageLogPrinter.Debugf("Directory: %s", directory)

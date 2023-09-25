@@ -11,8 +11,8 @@ type Image struct {
 	Caption   Caption
 }
 
-func (data *DataSet) InitImage() {
-	data.Images = make(map[string]*Image)
+func (image *Image) InitCaption() {
+	image.Caption = Caption{}
 }
 
 type Caption struct {
@@ -28,6 +28,10 @@ type DataSet struct {
 	TempCaption map[string]*Caption
 	imagesLock  sync.RWMutex
 	captionLock sync.RWMutex
+}
+
+func (data *DataSet) InitImage() {
+	data.Images = make(map[string]*Image)
 }
 
 func (data *DataSet) InitTempCaption() {
