@@ -62,7 +62,7 @@ func (data *DataSet) WriteFiles() {
 		if extension == ".txt" {
 			if _, ok := data.TempCaption[fileName]; !ok {
 				if data.TempCaption == nil {
-					data.TempCaption = make(map[string]*Caption)
+					data.InitCaption()
 				}
 				newCaption := Caption{Filename: currentEntry, Extension: extension, Directory: directory}
 				data.TempCaption[fileName] = &newCaption

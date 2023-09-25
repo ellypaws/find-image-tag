@@ -18,9 +18,7 @@ func main() {
 	roggy.LogLevel = roggy.TypeDebug
 	roggyPrinter.Debug("Starting main service")
 
-	data := DataSet{
-		Images: make(map[string]*Image),
-	}
+	data := InitDataSet()
 
 	data.promptOption()
 }
@@ -53,7 +51,7 @@ func (data *DataSet) promptOption() {
 	case "w":
 		data.writeJson()
 	case "r":
-		data.Images = make(map[string]*Image)
+		*data = *InitDataSet()
 	case "t":
 		data.appendCaptions()
 	case "i":
