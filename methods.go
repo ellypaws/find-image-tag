@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 func (data *DataSet) CaptionsToImages(move bool) {
@@ -149,7 +150,7 @@ func (data *DataSet) WriteFiles() {
 		if extension == ".txt" {
 			if _, ok := data.TempCaption[fileName]; !ok {
 				if data.TempCaption == nil {
-					data.InitCaption()
+					data.InitTempCaption()
 				}
 				newCaption := Caption{Filename: currentEntry, Extension: extension, Directory: directory}
 				data.TempCaption[fileName] = &newCaption
@@ -174,39 +175,70 @@ func (data *DataSet) WriteFiles() {
 		return
 	}
 
-	data.appendCaptions()
+	data.appendCaptionsConcurrently()
 }
 
-func (data *DataSet) appendCaptions() {
+func (data *DataSet) appendCaptionsConcurrently() {
+	var wg sync.WaitGroup
+	// Create a lock for each map
+	imageLock := sync.RWMutex{}
+	tempCaptionLock := sync.RWMutex{}
+
+	// Iterate over the tempCaption map
 	for _, caption := range data.TempCaption {
-		fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
-		captionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", caption.Filename))
-		if img, ok := data.Images[fileName]; ok {
-			// check if caption already exists and if directories match
-			if img.Caption.Filename != "" {
-				if img.Caption.Directory == caption.Directory {
-					captionLogPrinter.Noticef("Caption file for image %s already exists", fileName)
-					delete(data.TempCaption, fileName)
-					continue
-				} else {
-					captionLogPrinter.Noticef("Caption file for image %s already exists but directories do not match", fileName)
-					captionLogPrinter.Debugf("Image directory: %s", img.Directory)
-					captionLogPrinter.Debugf("Old Caption directory: %s", img.Caption.Directory)
-					captionLogPrinter.Debugf("New Caption directory: %s", caption.Directory)
-					captionLogPrinter.Noticef("Assuming that we want the new caption file")
-				}
-			}
-			captionLogPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, fileName)
-			captionLogPrinter.Debugf("Directory: %s", caption.Directory)
-			img.Caption = *caption
-			data.Images[fileName] = img
-		} else {
-			captionLogPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
-			continue
-		}
-		// now remove from the temp caption dataset
-		delete(data.TempCaption, fileName)
+		// For each caption, a new goroutine is launched to do the appending
+		wg.Add(1)
+		go data.appendCaption(&wg, &imageLock, &tempCaptionLock, caption)
 	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+}
+
+func (data *DataSet) appendCaption(waitGroup *sync.WaitGroup, imageLock *sync.RWMutex, tempCaptionLock *sync.RWMutex, caption *Caption) {
+
+	// Make sure to tell the wait group this goroutine finished in the end
+	defer waitGroup.Done()
+
+	fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
+	captionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", caption.Filename))
+
+	imageLock.RLock()
+	img, ok := data.Images[fileName]
+	imageLock.RUnlock()
+
+	if ok {
+		tempCaptionLock.Lock()
+		defer tempCaptionLock.Unlock()
+
+		// check if caption already exists and if directories match
+		if img.Caption.Filename != "" {
+			if img.Caption.Directory == caption.Directory {
+				captionLogPrinter.Noticef("Caption file for image %s already exists", fileName)
+				delete(data.TempCaption, fileName)
+				return
+			} else {
+				captionLogPrinter.Noticef("Caption file for image %s already exists but directories do not match", fileName)
+				captionLogPrinter.Debugf("Image directory: %s", img.Directory)
+				captionLogPrinter.Debugf("Old Caption directory: %s", img.Caption.Directory)
+				captionLogPrinter.Debugf("New Caption directory: %s", caption.Directory)
+				captionLogPrinter.Noticef("Assuming that we want the new caption file")
+			}
+		}
+		captionLogPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, fileName)
+		captionLogPrinter.Debugf("Directory: %s", caption.Directory)
+
+		img.Caption = *caption
+		imageLock.Lock()
+		data.Images[fileName] = img
+		imageLock.Unlock()
+	} else {
+		captionLogPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
+		return
+	}
+
+	// now remove from the temp caption dataset
+	delete(data.TempCaption, fileName)
 }
 
 func (data *DataSet) countFiles() int {

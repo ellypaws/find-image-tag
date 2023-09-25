@@ -1,12 +1,14 @@
 package main
 
+import "sync"
+
 type Image struct {
 	Filename  string
 	Extension string
 	Directory string
-	//Filesize int64
-	//Content  []byte
-	Caption Caption
+	Filesize  int64
+	Content   []byte
+	Caption   Caption
 }
 
 func (data *DataSet) InitImage() {
@@ -14,25 +16,27 @@ func (data *DataSet) InitImage() {
 }
 
 type Caption struct {
-	Filename  string
-	Extension string
-	Directory string
-	//Content      []byte
-	//NumberOfTags int
-}
-
-func (data *DataSet) InitCaption() {
-	data.TempCaption = make(map[string]*Caption)
+	Filename     string
+	Extension    string
+	Directory    string
+	Content      []byte
+	NumberOfTags int
 }
 
 type DataSet struct {
 	Images      map[string]*Image
 	TempCaption map[string]*Caption
+	imagesLock  sync.RWMutex
+	captionLock sync.RWMutex
+}
+
+func (data *DataSet) InitTempCaption() {
+	data.TempCaption = make(map[string]*Caption)
 }
 
 func InitDataSet() *DataSet {
 	var newDataSet DataSet
 	newDataSet.InitImage()
-	newDataSet.InitCaption()
+	newDataSet.InitTempCaption()
 	return &newDataSet
 }

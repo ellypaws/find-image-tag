@@ -63,7 +63,7 @@ func (data *DataSet) promptOption() {
 	case "r":
 		*data = *InitDataSet()
 	case "t":
-		data.appendCaptions()
+		data.appendCaptionsConcurrently()
 	case "i":
 		data.checkForMissingImages()
 	case "_":
