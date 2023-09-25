@@ -8,9 +8,46 @@ import (
 	"strings"
 )
 
-func (data *DataSet) MoveCaptionsToImages() {
-	// TODO: Move captions to images
-	roggyPrinter.Debug("Not implemented yet")
+func (data *DataSet) CaptionsToImages(move bool) {
+	for _, image := range data.Images {
+		if image.Caption.Filename == "" {
+			roggyPrinter.Noticef("Image %s does not have a caption", image.Filename, "Skipping...")
+			continue
+		}
+
+		// Handle relative directories, get current directory with os.Getwd
+		currentDir, _ := os.Getwd()
+
+		// If the directory is not an absolute path, join it with the current directory
+		if !filepath.IsAbs(image.Caption.Directory) {
+			image.Caption.Directory = filepath.Join(currentDir, image.Caption.Directory)
+		}
+		if !filepath.IsAbs(image.Directory) {
+			image.Directory = filepath.Join(currentDir, image.Directory)
+		}
+
+		// Create the paths
+		from := filepath.Join(image.Caption.Directory, image.Caption.Filename)
+		to := filepath.Join(image.Directory, image.Caption.Filename)
+
+		if move {
+			// Move the file. On many file systems, this is a simple rename operation.
+			err := os.Rename(from, to)
+			if err != nil {
+				roggyPrinter.Errorf("Error moving file: %v", err)
+			} else {
+				roggyPrinter.Noticef("File moved successfully from %s to %s", from, to)
+			}
+		} else {
+			// Create a hardlink of the file.
+			err := os.Link(from, to)
+			if err != nil {
+				roggyPrinter.Errorf("Error linking file: %v", err)
+			} else {
+				roggyPrinter.Infof("File linked successfully from %s to %s", from, to)
+			}
+		}
+	}
 }
 
 func (data *DataSet) CheckIfCaptionsExist() {

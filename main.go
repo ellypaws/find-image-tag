@@ -51,7 +51,9 @@ func (data *DataSet) promptOption() {
 	case "c":
 		data.CheckIfCaptionsExist()
 	case "m":
-		data.MoveCaptionsToImages()
+		data.CaptionsToImages(true)
+	case "o":
+		data.CaptionsToImages(false)
 	case "p":
 		data.prettyJson()
 	case "w":
