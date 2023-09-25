@@ -34,7 +34,7 @@ func (data *DataSet) promptOption() {
 	roggyPrinter.Infof("Pending text files: %i", data.countPending())
 	roggyPrinter.Noticef("--- Image Captioning ---")
 	roggyPrinter.Infof("[%i][A]dd files to the dataset", data.countFiles())
-	roggyPrinter.Infof("[%i][C]heck if captions exist", data.countImages())
+	roggyPrinter.Infof("[%i][C]heck if captions exist for each image", data.countImages())
 	roggyPrinter.Infof("[P]rint the dataset as JSON")
 	roggyPrinter.Infof("[R]eset the dataset")
 	roggyPrinter.Infof("[W]rite the dataset as a JSON file")
