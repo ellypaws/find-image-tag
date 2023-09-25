@@ -54,6 +54,7 @@ func (data *DataSet) WriteFiles() {
 
 		if extension == ".txt" {
 			tempCaption = append(tempCaption, Caption{Filename: currentEntry, Extension: extension, Directory: directory})
+			return nil
 		}
 
 		if _, ok := data.Images[fileName]; !ok {
