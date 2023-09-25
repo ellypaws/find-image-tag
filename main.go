@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 var imageDirectory string
@@ -18,9 +20,9 @@ func main() {
 	}
 
 	data.WriteFiles()
-	fmt.Printf("Images: %v\n", data.Images)
-	data.WriteFiles()
-	fmt.Printf("Images: %v\n", data.Images)
+	//fmt.Printf("Images: %v\n", data.Images)
+	byteArr, _ := json.MarshalIndent(data, "", "  ")
+	fmt.Println(string(byteArr))
 	//data.CheckIfCaptionsExist()
 }
 
@@ -44,6 +46,8 @@ func (data *DataSet) WriteFiles() {
 
 	extRegex, _ := regexp.Compile(regex)
 
+	var tempCaption []Caption
+
 	err := filepath.Walk(directoryToRead, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
@@ -59,23 +63,38 @@ func (data *DataSet) WriteFiles() {
 		directory, _ := filepath.Split(path)
 
 		if extension == ".txt" {
-			if _, ok := data.Images[fileName]; !ok {
-				fmt.Println("Image file for caption", currentEntry, "does not exist")
-			}
-			if img, ok := data.Images[fileName]; ok {
-				fmt.Println("Appending the caption file:", currentEntry, "to the image file:", fileName)
-				img.Caption = Caption{Filename: currentEntry, Extension: extension, Directory: directory}
-				data.Images[fileName] = img
-			}
-			return nil
+			tempCaption = append(tempCaption, Caption{Filename: currentEntry, Extension: extension, Directory: directory})
+			//if _, ok := data.Images[fileName]; !ok {
+			//	fmt.Println("Image file for caption", currentEntry, "does not exist")
+			//}
+			//if img, ok := data.Images[fileName]; ok {
+			//	fmt.Println("Appending the caption file:", currentEntry, "to the image file:", fileName)
+			//	img.Caption = Caption{Filename: currentEntry, Extension: extension, Directory: directory}
+			//	data.Images[fileName] = img
+			//}
+			//return nil
 		}
 
 		data.Images[fileName] = Image{Filename: currentEntry, Extension: extension, Directory: directory, Caption: Caption{}}
+
+		fmt.Println("Added file:", currentEntry, "to the dataset")
 
 		return nil
 	})
 	if err != nil {
 		return
+	}
+
+	for _, caption := range tempCaption {
+
+		fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
+		if img, ok := data.Images[fileName]; ok {
+			fmt.Println("Appending the caption file:", caption.Filename, "to the image file:", fileName)
+			img.Caption = caption
+			data.Images[fileName] = img
+		} else {
+			fmt.Println("Image file for caption", caption.Filename, "does not exist")
+		}
 	}
 }
 
