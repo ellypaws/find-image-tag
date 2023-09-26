@@ -60,6 +60,12 @@ func (data *DataSet) replaceSpaces() {
 	re := regexp.MustCompile(`(\w)\s+(\w)`)
 
 	for _, image := range data.Images {
+
+		if image.Caption.Filename == "" {
+			captionLogPrinter.Noticef("Image %s does not have a caption", image.Filename, "Skipping...")
+			continue
+		}
+
 		captionFile := filepath.Join(image.Caption.Directory, image.Caption.Filename)
 
 		file, err := os.Open(captionFile)
