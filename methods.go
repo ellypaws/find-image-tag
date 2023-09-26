@@ -111,21 +111,27 @@ func (data *DataSet) replaceSpaces() {
 }
 
 func (data *DataSet) CheckIfCaptionsExist() {
-	for _, image := range data.Images {
-		if image.Caption.Filename != "" {
-			roggyPrinter.Noticef("Caption `%s` has a matching image file `%s`", image.Caption.Filename, image.Filename)
-			roggyPrinter.Debugf("Caption directory: %s", image.Caption.Directory)
-			roggyPrinter.Debugf("Image directory: %s", image.Directory)
-			continue
-		}
-		roggyPrinter.Errorf("Caption for image %s does not exist", image.Filename)
+	var wg sync.WaitGroup
+	for index := range data.Images {
+		wg.Add(1)
+		go func(image *Image) {
+			if image.Caption.Filename != "" {
+				roggyPrinter.Noticef("Caption `%s` has a matching image file `%s`", image.Caption.Filename, image.Filename)
+				roggyPrinter.Debugf("Caption directory: %s", image.Caption.Directory)
+				roggyPrinter.Debugf("Image directory: %s", image.Directory)
+				return
+			}
+			roggyPrinter.Errorf("Caption for image %s does not exist", image.Filename)
+		}(data.Images[index])
 	}
+
+	wg.Wait()
 }
 
 func (data *DataSet) checkForMissingImages() {
 	wg := &sync.WaitGroup{}
 
-	for ix := range data.TempCaption {
+	for index := range data.TempCaption {
 		wg.Add(1)
 		go func(c *Caption) {
 			defer wg.Done()
@@ -134,7 +140,7 @@ func (data *DataSet) checkForMissingImages() {
 			if _, ok := data.Images[fileName]; !ok {
 				tempCaptionLogPrinter.Errorf("Image file for caption %s does not exist", c.Filename)
 			}
-		}(data.TempCaption[ix])
+		}(data.TempCaption[index])
 	}
 
 	wg.Wait()
