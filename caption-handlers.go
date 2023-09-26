@@ -119,7 +119,7 @@ func (data *DataSet) CaptionsToImages(action int) {
 }
 
 func (data *DataSet) replaceSpaces() {
-	re := regexp.MustCompile(`(\w)\s+(\w)`)
+	re := regexp.MustCompile(`(\w) ([(]?\w)`)
 	wg := &sync.WaitGroup{}
 
 	for index := range data.Images {
