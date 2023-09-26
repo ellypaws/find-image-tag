@@ -58,51 +58,58 @@ func (data *DataSet) CaptionsToImages(move bool) {
 
 func (data *DataSet) replaceSpaces() {
 	re := regexp.MustCompile(`(\w)\s+(\w)`)
+	wg := &sync.WaitGroup{}
 
 	for _, image := range data.Images {
+		i := image
 
-		if image.Caption.Filename == "" {
-			captionLogPrinter.Noticef("Image %s does not have a caption", image.Filename, "Skipping...")
-			continue
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if i.Caption.Filename == "" {
+				captionLogPrinter.Noticef("Image %s does not have a caption", i.Filename, "Skipping...")
+				return
+			}
 
-		captionFile := filepath.Join(image.Caption.Directory, image.Caption.Filename)
+			captionFile := filepath.Join(i.Caption.Directory, i.Caption.Filename)
 
-		file, err := os.Open(captionFile)
-		if err != nil {
-			captionLogPrinter.Errorf("Error opening file: %v", err)
-			continue
-		}
+			file, err := os.Open(captionFile)
+			if err != nil {
+				captionLogPrinter.Errorf("Error opening file: %v", err)
+				return
+			}
 
-		reader := bufio.NewReader(file)
-		content, _ := reader.ReadString('\n')
-		file.Close()
+			reader := bufio.NewReader(file)
+			content, _ := reader.ReadString('\n')
+			file.Close()
 
-		newContent := re.ReplaceAllString(content, "${1}_${2}")
+			newContent := re.ReplaceAllString(content, "${1}_${2}")
 
-		err = os.Remove(captionFile)
-		if err != nil {
-			captionLogPrinter.Errorf("Error deleting file: %v", err)
-			continue
-		}
+			err = os.Remove(captionFile)
+			if err != nil {
+				captionLogPrinter.Errorf("Error deleting file: %v", err)
+				return
+			}
 
-		file, err = os.Create(captionFile)
-		if err != nil {
-			captionLogPrinter.Errorf("Error creating file: %v", err)
-			continue
-		}
+			file, err = os.Create(captionFile)
+			if err != nil {
+				captionLogPrinter.Errorf("Error creating file: %v", err)
+				return
+			}
 
-		writer := bufio.NewWriter(file)
-		_, err = writer.WriteString(newContent + "\n")
-		writer.Flush()
-		file.Close()
+			writer := bufio.NewWriter(file)
+			_, err = writer.WriteString(newContent + "\n")
+			writer.Flush()
+			file.Close()
 
-		if err != nil {
-			captionLogPrinter.Errorf("Error writing file: %v", err)
-		} else {
-			captionLogPrinter.Infof("Replaced spaces with underscores for file: %s", captionFile)
-		}
+			if err != nil {
+				captionLogPrinter.Errorf("Error writing file: %v", err)
+			} else {
+				captionLogPrinter.Infof("Replaced spaces with underscores for file: %s", captionFile)
+			}
+		}()
 	}
+	wg.Wait()
 }
 
 func (data *DataSet) CheckIfCaptionsExist() {
