@@ -32,11 +32,6 @@ func (data *DataSet) promptOption() {
 
 	roggy.Flush()
 
-	type info struct {
-		message    string
-		data       any
-		debuglevel int
-	}
 	toPrint := []string{
 		"1::" + roggy.Rainbowize("---") + " Stats " + roggy.Rainbowize("---"),
 		"2::{countImagesWithCaptions:w=5,j=r} | Images with captions",
