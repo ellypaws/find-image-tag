@@ -70,13 +70,6 @@ func (data *DataSet) promptOption() {
 		"nul":                                      "",
 	}
 
-	//result := stemp.CompileJSON("   |{col1:j=c,w=10}|{col2:j=c,w=40}|\n---------------------------------------------------\n", `{"col1": "Name", "col2": "Address"}`)
-	//for idx, d := range data {
-	//	s := strings.Split(d, ",")
-	//	result += stemp.Compile("{idx:w=3}|{name:j=c,w=10}|{add:j=c,w=40}|\n", map[string]interface{}{"idx": idx, "name": s[0], "add": s[1]})
-	//}
-	//roggyPrinter.Infof(result)
-
 	for _, p := range toPrint {
 		if p == "" {
 			roggyNoTrace.Infof(strings.Repeat(" ", 60))
@@ -94,24 +87,6 @@ func (data *DataSet) promptOption() {
 		roggyPrinter.Infof(stemp.Compile(p, values))
 	}
 
-	//roggyPrinter.Noticef("--- Stats ---")
-	//roggyPrinter.Infof("Images with captions: %i", data.countImagesWithCaptions())
-	//roggyPrinter.Infof("Images with captions that match directories: %i", data.countCaptionDirectoryMatchImageDirectory())
-	//roggyPrinter.Infof("Missing captions: %i", data.countImagesWithoutCaptions())
-	//roggyPrinter.Infof("Pending text files: %i", data.countPending())
-	//roggyPrinter.Noticef("--- Image Captioning ---")
-	//roggyPrinter.Infof("[%5v] [A]dd files to the dataset", data.countFiles())
-	//roggyPrinter.Infof("[%5v] [C]heck if captions exist for each image", data.countImages())
-	//roggyPrinter.Infof("[P]rint the dataset as JSON")
-	//roggyPrinter.Infof("[R]eset the dataset")
-	//roggyPrinter.Infof("[W]rite the dataset as a JSON file")
-	//roggyPrinter.Infof("[%5v]Append [t]ext files to matching images", data.countPending())
-	//roggyPrinter.Infof("Check for captions without matching [i]mages")
-	//roggyPrinter.Infof("[Q]uit")
-	//roggyPrinter.Noticef("--- Actions ---")
-	//roggyPrinter.Infof("[%5v] [M]ove captions to the image files", data.countImagesWithCaptions())
-	//roggyPrinter.Infof("[%5v] C[o]py captions to the image files", data.countImagesWithCaptions())
-	//roggyPrinter.Infof("Replace spaces with [_]")
 	choice, _ := getInput("Enter your choice: ", reader)
 
 	switch strings.ToLower(choice) {
