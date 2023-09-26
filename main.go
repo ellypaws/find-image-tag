@@ -34,12 +34,13 @@ func (data *DataSet) promptOption() {
 
 	toPrint := []string{
 		"1::" + roggy.Rainbowize("---") + " Stats " + roggy.Rainbowize("---"),
+		"2::",
 		"2::{countImagesWithCaptions:w=5,j=r} | Images with captions",
 		"2::{countCaptionDirectoryMatchImageDirectory:w=5,j=r} | Images with captions that match directories",
 		"2::{countImagesWithoutCaptions:w=5,j=r} | Missing captions",
 		"2::{countPending:w=5,j=r} | Pending text files",
-		"",
 		"1::" + roggy.Rainbowize("---") + " Image Captioning " + roggy.Rainbowize("---"),
+		"2::",
 		"2::{countFiles:w=5,j=r} | [A]dd files to the dataset",
 		"2::{countImages:w=5,j=r} | [C]heck each image has a caption",
 		"2::{nul:w=5,j=r} | [P]rint the dataset as JSON",
@@ -48,8 +49,8 @@ func (data *DataSet) promptOption() {
 		"2::{countPending:w=5,j=r} | Append [t]ext files to matching images",
 		"2::{nul:w=5,j=r} | Check for captions without matching [i]mages",
 		"2::{nul:w=5,j=r} | [Q]uit",
-		"",
 		"1::" + roggy.Rainbowize("---") + " Actions " + roggy.Rainbowize("---"),
+		"2::",
 		"2::{countImagesWithCaptions:w=5,j=r} | [M]ove captions to the image files",
 		"2::{countImagesWithCaptions:w=5,j=r} | C[o]py captions to the image files",
 		"2::{nul:w=5,j=r} | Replace spaces with [_]",
@@ -65,22 +66,7 @@ func (data *DataSet) promptOption() {
 		"nul":                                      "",
 	}
 
-	for _, p := range toPrint {
-		if p == "" {
-			roggyNoTrace.Infof(strings.Repeat(" ", 60))
-			continue
-		}
-		dbgString := strings.Split(p, "::")
-		debugLevel := dbgString[0]
-		if debugLevel == "1" {
-			roggyPrinter.Noticef(dbgString[1])
-			continue
-		}
-		if debugLevel == "2" {
-			p = dbgString[1]
-		}
-		roggyPrinter.Infof(stemp.Compile(p, values))
-	}
+	printLogs(toPrint, values)
 
 	choice, _ := getInput("Enter your choice: ", reader)
 
@@ -143,6 +129,40 @@ func (data *DataSet) writeJson() {
 	_, _ = file.Write(bytes)
 }
 
+func printLogs(toPrint []string, values map[string]any) {
+	var buffer []string
+	bufferLevel := ""
+
+	for _, p := range toPrint {
+		if p == "" {
+			roggyNoTrace.Infof(strings.Repeat(" ", 60))
+			continue
+		}
+
+		dbgString := strings.Split(p, "::")
+		debugLevel := dbgString[0]
+
+		if dbgString[1] == "" {
+			dbgString[1] = strings.Repeat(" ", 60)
+		}
+
+		if bufferLevel != "" && bufferLevel != debugLevel {
+			output := strings.Join(buffer, "\n")
+			printLog(bufferLevel, output, values)
+			buffer = []string{}
+		}
+
+		bufferLevel = debugLevel
+		buffer = append(buffer, dbgString[1])
+	}
+
+	// last batch
+	if len(buffer) > 0 {
+		output := strings.Join(buffer, "\n")
+		printLog(bufferLevel, output, values)
+	}
+}
+
 var logFunctions = map[string]func(f string, message ...interface{}){
 	//"-1": roggyPrinter.Roggyf,
 	"0": roggyPrinter.Errorf,
@@ -152,9 +172,10 @@ var logFunctions = map[string]func(f string, message ...interface{}){
 	"4": roggyPrinter.Debugf,
 }
 
-func printLog(debugLevel string, output string) {
+func printLog(debugLevel string, output string, values map[string]any) {
 	if logFunc, ok := logFunctions[debugLevel]; ok {
-		logFunc(output)
+		toOutput := stemp.Compile(output, values)
+		logFunc(toOutput)
 	} else {
 		fmt.Printf("Debug level outside valid range: %s", debugLevel)
 		return
