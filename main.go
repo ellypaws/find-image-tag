@@ -41,7 +41,7 @@ func (data *DataSet) promptOption() {
 		"2::{countPending:w=30,j=r} | Pending text files",
 		"1::" + roggy.Rainbowize("---") + " Image Captioning " + roggy.Rainbowize("---"),
 		"2::",
-		"2::{countFiles:w=30,j=r} | [A]dd files to the dataset",
+		"2::{countFiles:w=30,j=r} | [+] Add files to the dataset",
 		"2::{countImages:w=30,j=r} | [C]heck each image has a caption",
 		"2::{nul:w=30,j=r} | [P]rint the dataset as JSON",
 		"2::{nul:w=30,j=r} | [R]eset the dataset",
@@ -51,8 +51,9 @@ func (data *DataSet) promptOption() {
 		"2::{nul:w=30,j=r} | [Q]uit",
 		"1::" + roggy.Rainbowize("---") + " Actions " + roggy.Rainbowize("---"),
 		"2::",
-		"2::{countImagesWithCaptions:w=30,j=r} | [M]ove captions to the image files",
-		"2::{countImagesWithCaptions:w=30,j=r} | C[o]py captions to the image files",
+		"2::{countImagesWithCaptions:w=30,j=r} | [Move] captions to the image files",
+		"2::{countImagesWithCaptions:w=30,j=r} | [Hardlink] captions to the image files",
+		"2::{countImagesWithCaptions:w=30,j=r} | [Merge] captions to existing image files",
 		"2::{nul:w=30,j=r} | Replace spaces with [_]",
 	}
 
@@ -71,14 +72,14 @@ func (data *DataSet) promptOption() {
 	choice, _ := getInput("Enter your choice: ", reader)
 
 	switch strings.ToLower(choice) {
-	case "a":
+	case "+":
 		data.WriteFiles()
 	case "c":
 		data.CheckIfCaptionsExist()
-	case "m":
-		data.CaptionsToImages(true)
-	case "o":
-		data.CaptionsToImages(false)
+	case "move":
+		data.CaptionsToImages(move)
+	case "hardlink":
+		data.CaptionsToImages(hardlink)
 	case "p":
 		data.prettyJson()
 	case "w":
@@ -89,6 +90,8 @@ func (data *DataSet) promptOption() {
 		data.appendCaptionsConcurrently()
 	case "i":
 		data.checkForMissingImages()
+	case "merge":
+		data.CaptionsToImages(merge)
 	case "_":
 		data.replaceSpaces()
 	case "q":

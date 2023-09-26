@@ -14,7 +14,13 @@ import (
 
 var captionLogPrinter = roggy.Printer("caption-handler")
 
-func (data *DataSet) CaptionsToImages(move bool) {
+const (
+	move = iota
+	hardlink
+	merge
+)
+
+func (data *DataSet) CaptionsToImages(action int) {
 	for _, image := range data.Images {
 		if image.Caption.Filename == "" {
 			captionLogPrinter.Noticef("Image %s does not have a caption", image.Filename, "Skipping...")
@@ -36,7 +42,8 @@ func (data *DataSet) CaptionsToImages(move bool) {
 		from := filepath.Join(image.Caption.Directory, image.Caption.Filename)
 		to := filepath.Join(image.Directory, image.Caption.Filename)
 
-		if move {
+		switch action {
+		case move:
 			// Move the file. On many file systems, this is a simple rename operation.
 			err := os.Rename(from, to)
 			if err != nil {
@@ -44,7 +51,7 @@ func (data *DataSet) CaptionsToImages(move bool) {
 			} else {
 				captionLogPrinter.Noticef("File moved successfully from %s to %s", from, to)
 			}
-		} else {
+		case hardlink:
 			// Create a hardlink of the file.
 			err := os.Link(from, to)
 			if err != nil {
@@ -52,6 +59,11 @@ func (data *DataSet) CaptionsToImages(move bool) {
 			} else {
 				captionLogPrinter.Infof("File linked successfully from %s to %s", from, to)
 			}
+		case merge:
+			// TODO: Combine the caption files.
+			// Append the contents of the caption file to new caption file.
+			// First separate tags by commas in the existing and new caption files.
+			// Then append the new tags to the existing tags and remove duplicates.
 		}
 	}
 }
