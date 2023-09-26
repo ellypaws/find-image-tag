@@ -142,3 +142,21 @@ func (data *DataSet) writeJson() {
 	bytes, _ := json.MarshalIndent(data.Images, "", "  ")
 	_, _ = file.Write(bytes)
 }
+
+var logFunctions = map[string]func(f string, message ...interface{}){
+	//"-1": roggyPrinter.Roggyf,
+	"0": roggyPrinter.Errorf,
+	"1": roggyPrinter.Noticef,
+	"2": roggyPrinter.Infof,
+	"3": roggyPrinter.Verbosef,
+	"4": roggyPrinter.Debugf,
+}
+
+func printLog(debugLevel string, output string) {
+	if logFunc, ok := logFunctions[debugLevel]; ok {
+		logFunc(output)
+	} else {
+		fmt.Printf("Debug level outside valid range: %s", debugLevel)
+		return
+	}
+}
