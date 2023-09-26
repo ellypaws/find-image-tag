@@ -188,23 +188,20 @@ func (data *DataSet) WriteFiles() {
 func (data *DataSet) appendCaptionsConcurrently() {
 	startTime := time.Now()
 	var wg sync.WaitGroup
-	// Create a lock for each map
-	imageLock := &sync.RWMutex{}
-	tempCaptionLock := &sync.RWMutex{}
-	// Hold all keys
-	keys := make([]string, 0, len(data.TempCaption))
 
-	tempCaptionLock.RLock() // added
+	// Added using DataSet's locks
+	data.captionLock.RLock()
+	keys := make([]string, 0, len(data.TempCaption))
 	for k := range data.TempCaption {
 		keys = append(keys, k)
 	}
-	tempCaptionLock.RUnlock() // added
+	data.captionLock.RUnlock()
 
 	// Iterate over the keys
 	for _, k := range keys {
 		// For each key, a new goroutine is launched to do the appending
 		wg.Add(1)
-		go data.appendCaption(&wg, imageLock, tempCaptionLock, k)
+		go data.appendCaption(&wg, k)
 	}
 
 	// Wait for all goroutines to finish
@@ -213,32 +210,34 @@ func (data *DataSet) appendCaptionsConcurrently() {
 	captionLogPrinter.Infof("Finished appending captions concurrently in: %s", elapsedTime)
 }
 
-func (data *DataSet) appendCaption(waitGroup *sync.WaitGroup, imageLock *sync.RWMutex, tempCaptionLock *sync.RWMutex, key string) {
-
-	// Make sure to tell the wait group this goroutine finished in the end
+func (data *DataSet) appendCaption(waitGroup *sync.WaitGroup, key string) {
 	defer waitGroup.Done()
 
-	caption := data.TempCaption[key] // protect this read with RLock
+	// Added using DataSet's locks
+	data.captionLock.RLock()
+	caption := data.TempCaption[key]
+	data.captionLock.RUnlock()
+
 	fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
 	tempCaptionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", caption.Filename))
 
-	imageLock.RLock()
+	data.imagesLock.RLock()
 	img, ok := data.Images[fileName]
-	imageLock.RUnlock()
-
-	tempCaptionLock.Lock()
-	defer tempCaptionLock.Unlock()
+	data.imagesLock.RUnlock()
 
 	if !ok {
 		tempCaptionLogPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
 		return
 	}
 
+	data.captionLock.Lock()
+	defer data.captionLock.Unlock()
 	if img.Caption.Directory == caption.Directory {
 		tempCaptionLogPrinter.Noticef("Caption file for image %s already exists", fileName)
 		delete(data.TempCaption, fileName)
 		return
 	}
+
 	if img.Caption.Directory != "" && img.Caption.Directory != caption.Directory {
 		tempCaptionLogPrinter.Noticef("Caption file for image %s already exists but directories do not match", fileName)
 		tempCaptionLogPrinter.Debugf("Image directory: %s", img.Directory)
@@ -250,12 +249,12 @@ func (data *DataSet) appendCaption(waitGroup *sync.WaitGroup, imageLock *sync.RW
 	tempCaptionLogPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, img.Filename)
 	tempCaptionLogPrinter.Debugf("Caption directory: %s", caption.Directory)
 	tempCaptionLogPrinter.Debugf("Image directory: %s", img.Directory)
-	img.Caption = *caption
-	imageLock.Lock()
-	data.Images[fileName] = img
-	imageLock.Unlock()
 
-	// now remove from the temp caption dataset
+	img.Caption = *caption
+	data.imagesLock.Lock()
+	data.Images[fileName] = img
+	data.imagesLock.Unlock()
+
 	delete(data.TempCaption, fileName)
 }
 
