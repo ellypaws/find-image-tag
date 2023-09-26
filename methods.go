@@ -60,11 +60,9 @@ func (data *DataSet) replaceSpaces() {
 	re := regexp.MustCompile(`(\w)\s+(\w)`)
 	wg := &sync.WaitGroup{}
 
-	for _, image := range data.Images {
-		i := image
-
+	for index := range data.Images {
 		wg.Add(1)
-		go func() {
+		go func(i *Image) {
 			defer wg.Done()
 			if i.Caption.Filename == "" {
 				captionLogPrinter.Noticef("Image %s does not have a caption", i.Filename, "Skipping...")
@@ -107,7 +105,7 @@ func (data *DataSet) replaceSpaces() {
 			} else {
 				captionLogPrinter.Infof("Replaced spaces with underscores for file: %s", captionFile)
 			}
-		}()
+		}(data.Images[index])
 	}
 	wg.Wait()
 }
