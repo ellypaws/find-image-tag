@@ -11,10 +11,12 @@ import (
 	"sync"
 )
 
+var captionLogPrinter = roggy.Printer("caption-handler")
+
 func (data *DataSet) CaptionsToImages(move bool) {
 	for _, image := range data.Images {
 		if image.Caption.Filename == "" {
-			roggyPrinter.Noticef("Image %s does not have a caption", image.Filename, "Skipping...")
+			captionLogPrinter.Noticef("Image %s does not have a caption", image.Filename, "Skipping...")
 			continue
 		}
 
@@ -37,17 +39,17 @@ func (data *DataSet) CaptionsToImages(move bool) {
 			// Move the file. On many file systems, this is a simple rename operation.
 			err := os.Rename(from, to)
 			if err != nil {
-				roggyPrinter.Errorf("Error moving file: %v", err)
+				captionLogPrinter.Errorf("Error moving file: %v", err)
 			} else {
-				roggyPrinter.Noticef("File moved successfully from %s to %s", from, to)
+				captionLogPrinter.Noticef("File moved successfully from %s to %s", from, to)
 			}
 		} else {
 			// Create a hardlink of the file.
 			err := os.Link(from, to)
 			if err != nil {
-				roggyPrinter.Errorf("Error linking file: %v", err)
+				captionLogPrinter.Errorf("Error linking file: %v", err)
 			} else {
-				roggyPrinter.Infof("File linked successfully from %s to %s", from, to)
+				captionLogPrinter.Infof("File linked successfully from %s to %s", from, to)
 			}
 		}
 	}
@@ -61,7 +63,7 @@ func (data *DataSet) replaceSpaces() {
 
 		file, err := os.Open(captionFile)
 		if err != nil {
-			roggyPrinter.Errorf("Error opening file: %v", err)
+			captionLogPrinter.Errorf("Error opening file: %v", err)
 			continue
 		}
 
@@ -73,13 +75,13 @@ func (data *DataSet) replaceSpaces() {
 
 		err = os.Remove(captionFile)
 		if err != nil {
-			roggyPrinter.Errorf("Error deleting file: %v", err)
+			captionLogPrinter.Errorf("Error deleting file: %v", err)
 			continue
 		}
 
 		file, err = os.Create(captionFile)
 		if err != nil {
-			roggyPrinter.Errorf("Error creating file: %v", err)
+			captionLogPrinter.Errorf("Error creating file: %v", err)
 			continue
 		}
 
@@ -89,9 +91,9 @@ func (data *DataSet) replaceSpaces() {
 		file.Close()
 
 		if err != nil {
-			roggyPrinter.Errorf("Error writing file: %v", err)
+			captionLogPrinter.Errorf("Error writing file: %v", err)
 		} else {
-			roggyPrinter.Infof("Replaced spaces with underscores for file: %s", captionFile)
+			captionLogPrinter.Infof("Replaced spaces with underscores for file: %s", captionFile)
 		}
 	}
 }
@@ -99,6 +101,9 @@ func (data *DataSet) replaceSpaces() {
 func (data *DataSet) CheckIfCaptionsExist() {
 	for _, image := range data.Images {
 		if image.Caption.Filename != "" {
+			roggyPrinter.Noticef("Caption `%s` has a matching image file `%s`", image.Caption.Filename, image.Filename)
+			roggyPrinter.Debugf("Caption directory: %s", image.Caption.Directory)
+			roggyPrinter.Debugf("Image directory: %s", image.Directory)
 			continue
 		}
 		roggyPrinter.Errorf("Caption for image %s does not exist", image.Filename)
@@ -107,10 +112,10 @@ func (data *DataSet) CheckIfCaptionsExist() {
 
 func (data *DataSet) checkForMissingImages() {
 	for _, caption := range data.TempCaption {
-		captionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", caption.Filename))
+		tempCaptionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", caption.Filename))
 		fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
 		if _, ok := data.Images[fileName]; !ok {
-			captionLogPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
+			tempCaptionLogPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
 		}
 	}
 }
@@ -140,12 +145,12 @@ func (data *DataSet) WriteFiles() {
 
 		fileLogPrinter := roggy.Printer(fmt.Sprintf("file-handler: %v", fileName))
 		tempCaptionLogPrinter := roggy.Printer(fmt.Sprintf("temp-caption-handler: %v", currentEntry))
+		tempCaptionLogPrinter.NoTrace = true
 		imageLogPrinter := roggy.Printer(fmt.Sprintf("image-handler: %v", currentEntry))
 
 		directory, _ := filepath.Split(path)
 
-		fileLogPrinter.Debugf("Filename: %s", fileName)
-		fileLogPrinter.Debugf("Extension: %s", extension)
+		fileLogPrinter.Debugf("Processing File: %s", currentEntry)
 
 		if extension == ".txt" {
 			if _, ok := data.TempCaption[fileName]; !ok {
