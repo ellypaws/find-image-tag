@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 )
 
 var captionLogPrinter = roggy.Printer("caption-handler")
@@ -185,63 +186,74 @@ func (data *DataSet) WriteFiles() {
 }
 
 func (data *DataSet) appendCaptionsConcurrently() {
+	startTime := time.Now()
 	var wg sync.WaitGroup
 	// Create a lock for each map
-	imageLock := sync.RWMutex{}
-	tempCaptionLock := sync.RWMutex{}
+	imageLock := &sync.RWMutex{}
+	tempCaptionLock := &sync.RWMutex{}
+	// Hold all keys
+	keys := make([]string, 0, len(data.TempCaption))
 
-	// Iterate over the tempCaption map
-	for _, caption := range data.TempCaption {
-		// For each caption, a new goroutine is launched to do the appending
+	tempCaptionLock.RLock() // added
+	for k := range data.TempCaption {
+		keys = append(keys, k)
+	}
+	tempCaptionLock.RUnlock() // added
+
+	// Iterate over the keys
+	for _, k := range keys {
+		// For each key, a new goroutine is launched to do the appending
 		wg.Add(1)
-		go data.appendCaption(&wg, &imageLock, &tempCaptionLock, caption)
+		go data.appendCaption(&wg, imageLock, tempCaptionLock, k)
 	}
 
 	// Wait for all goroutines to finish
 	wg.Wait()
+	elapsedTime := time.Since(startTime)
+	captionLogPrinter.Infof("Finished appending captions concurrently in: %s", elapsedTime)
 }
 
-func (data *DataSet) appendCaption(waitGroup *sync.WaitGroup, imageLock *sync.RWMutex, tempCaptionLock *sync.RWMutex, caption *Caption) {
+func (data *DataSet) appendCaption(waitGroup *sync.WaitGroup, imageLock *sync.RWMutex, tempCaptionLock *sync.RWMutex, key string) {
 
 	// Make sure to tell the wait group this goroutine finished in the end
 	defer waitGroup.Done()
 
+	caption := data.TempCaption[key] // protect this read with RLock
 	fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
-	captionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", caption.Filename))
+	tempCaptionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", caption.Filename))
 
 	imageLock.RLock()
 	img, ok := data.Images[fileName]
 	imageLock.RUnlock()
 
-	if ok {
-		tempCaptionLock.Lock()
-		defer tempCaptionLock.Unlock()
+	tempCaptionLock.Lock()
+	defer tempCaptionLock.Unlock()
 
-		// check if caption already exists and if directories match
-		if img.Caption.Filename != "" {
-			if img.Caption.Directory == caption.Directory {
-				captionLogPrinter.Noticef("Caption file for image %s already exists", fileName)
-				delete(data.TempCaption, fileName)
-				return
-			} else {
-				captionLogPrinter.Noticef("Caption file for image %s already exists but directories do not match", fileName)
-				captionLogPrinter.Debugf("Image directory: %s", img.Directory)
-				captionLogPrinter.Debugf("Old Caption directory: %s", img.Caption.Directory)
-				captionLogPrinter.Debugf("New Caption directory: %s", caption.Directory)
-				captionLogPrinter.Noticef("Assuming that we want the new caption file")
-			}
-		}
-		captionLogPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, fileName)
-		captionLogPrinter.Debugf("Directory: %s", caption.Directory)
-
-		img.Caption = *caption
-		imageLock.Lock()
-		data.Images[fileName] = img
-		imageLock.Unlock()
-	} else {
-		captionLogPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
+	if !ok {
+		tempCaptionLogPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
 		return
 	}
+
+	if img.Caption.Directory == caption.Directory {
+		tempCaptionLogPrinter.Noticef("Caption file for image %s already exists", fileName)
+		delete(data.TempCaption, fileName)
+		return
+	}
+	if img.Caption.Directory != "" && img.Caption.Directory != caption.Directory {
+		tempCaptionLogPrinter.Noticef("Caption file for image %s already exists but directories do not match", fileName)
+		tempCaptionLogPrinter.Debugf("Image directory: %s", img.Directory)
+		tempCaptionLogPrinter.Debugf("Old Caption directory: %s", img.Caption.Directory)
+		tempCaptionLogPrinter.Debugf("New Caption directory: %s", caption.Directory)
+		tempCaptionLogPrinter.Noticef("Assuming that we want the new caption file")
+	}
+
+	tempCaptionLogPrinter.Infof("Appending the caption file: %s to the image file: %s", caption.Filename, img.Filename)
+	tempCaptionLogPrinter.Debugf("Caption directory: %s", caption.Directory)
+	tempCaptionLogPrinter.Debugf("Image directory: %s", img.Directory)
+	img.Caption = *caption
+	imageLock.Lock()
+	data.Images[fileName] = img
+	imageLock.Unlock()
 
 	// now remove from the temp caption dataset
 	delete(data.TempCaption, fileName)
