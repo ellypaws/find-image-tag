@@ -123,7 +123,9 @@ func (data *DataSet) prettyJson() {
 func (data *DataSet) writeJson() {
 	roggyPrinter.Infof("Writing dataset to file...")
 	file, _ := os.Create("dataset.json")
-	defer file.Close()
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
 
 	bytes, _ := json.MarshalIndent(data.Images, "", "  ")
 	_, _ = file.Write(bytes)

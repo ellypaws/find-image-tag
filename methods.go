@@ -79,7 +79,7 @@ func (data *DataSet) replaceSpaces() {
 
 			reader := bufio.NewReader(file)
 			content, _ := reader.ReadString('\n')
-			file.Close()
+			_ = file.Close()
 
 			newContent := re.ReplaceAllString(content, "${1}_${2}")
 
@@ -97,8 +97,8 @@ func (data *DataSet) replaceSpaces() {
 
 			writer := bufio.NewWriter(file)
 			_, err = writer.WriteString(newContent + "\n")
-			writer.Flush()
-			file.Close()
+			_ = writer.Flush()
+			_ = file.Close()
 
 			if err != nil {
 				captionLogPrinter.Errorf("Error writing file: %v", err)
