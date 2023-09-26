@@ -15,8 +15,16 @@ github.com/nokusukun/roggy v0.1.2 h1:lxt2EOehv+0Td+LZfzQDvgXGpu0x7KHfMGTg4SpVgeQ
 github.com/nokusukun/roggy v0.1.2/go.mod h1:zhOIaNnhE5sfibH2NQ1vQV9pHZrIamupud5QMbO4OFk=
 github.com/nokusukun/roggy v0.1.4 h1:cggah5TqsbspswAgrX1jwDw8zFtulGACg+qbRMaH0zY=
 github.com/nokusukun/roggy v0.1.4/go.mod h1:9ooA750dwDpXML+zT8zSVyZZlM86U41F87a5WDYRfZ8=
+github.com/nokusukun/roggy v0.1.6 h1:rQ1ggrbdvzFGzNezBs0GkVhpfsPZqOrHbxFPq1NJgW4=
+github.com/nokusukun/roggy v0.1.6/go.mod h1:hVzwEhDoqRXOLhrB2Ynd6hRWPEYahypmnqXdTl2/GC4=
 github.com/nokusukun/stemp v0.0.0-20190721151213-e6029a1e4f9a h1:5EDoDclMfnmdweHz9vG9vX67uwSEtZmd4FtFDvACCqM=
 github.com/nokusukun/stemp v0.0.0-20190721151213-e6029a1e4f9a/go.mod h1:NuZxGzwWbV+jAl2r23XAq9QrIAnfnUANSw1aATR4Tww=
+github.com/nokusukun/stemp v0.1.2 h1:K7cbiTZj3kEtveSIWOPzEdqDLtOeNgFv1HY5VYSMTjA=
+github.com/nokusukun/stemp v0.1.2/go.mod h1:NuZxGzwWbV+jAl2r23XAq9QrIAnfnUANSw1aATR4Tww=
+github.com/nokusukun/stemp v0.1.4 h1:Ty6lzuAECp5U/Q8N2bjLXPDlUdBZ/hC3XoQm0Fld5Mk=
+github.com/nokusukun/stemp v0.1.4/go.mod h1:aJrJjJ0G5laJXxn1QO64bDZsfU5StZopyKyh3ssaDEM=
+github.com/nokusukun/stemp v0.1.5 h1:WeDqfCuhBDB4oxR1Z21OEAxCCgebLAu0s/h1xtF0x9Q=
+github.com/nokusukun/stemp v0.1.5/go.mod h1:aJrJjJ0G5laJXxn1QO64bDZsfU5StZopyKyh3ssaDEM=
 golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.12.0 h1:CM0HF96J0hcLAwsHPJZjfdNzs0gftsLfgKt57wWHJ0o=
