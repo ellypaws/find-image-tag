@@ -125,13 +125,21 @@ func (data *DataSet) CheckIfCaptionsExist() {
 }
 
 func (data *DataSet) checkForMissingImages() {
-	for _, caption := range data.TempCaption {
-		tempCaptionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", caption.Filename))
-		fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
-		if _, ok := data.Images[fileName]; !ok {
-			tempCaptionLogPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
-		}
+	wg := &sync.WaitGroup{}
+
+	for ix := range data.TempCaption {
+		wg.Add(1)
+		go func(c *Caption) {
+			defer wg.Done()
+			tempCaptionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", c.Filename))
+			fileName, _ := strings.CutSuffix(c.Filename, c.Extension)
+			if _, ok := data.Images[fileName]; !ok {
+				tempCaptionLogPrinter.Errorf("Image file for caption %s does not exist", c.Filename)
+			}
+		}(data.TempCaption[ix])
 	}
+
+	wg.Wait()
 }
 
 func (data *DataSet) WriteFiles() {
@@ -195,6 +203,7 @@ func (data *DataSet) WriteFiles() {
 		return
 	}
 
+	captionLogPrinter.Infof("Now appending captions to images...")
 	data.appendCaptionsConcurrently()
 }
 
