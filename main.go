@@ -13,6 +13,7 @@ import (
 
 var roggyPrinter = roggy.Printer("main-service")
 var roggyNoTrace = roggy.Printer("main-service")
+var overwrite bool
 
 func main() {
 	// Read all the filenames of image files in the image directory
@@ -51,10 +52,19 @@ func (data *DataSet) promptOption() {
 		"2::{nul:w=30,j=r} | [Q]uit",
 		"1::" + roggy.Rainbowize("---") + " Actions " + roggy.Rainbowize("---"),
 		"2::",
-		"2::{countImagesWithCaptions:w=30,j=r} | [Move] captions to the image files",
-		"2::{countImagesWithCaptions:w=30,j=r} | [Hardlink] captions to the image files",
-		"2::{countImagesWithCaptions:w=30,j=r} | [Merge] captions to existing image files",
+		"2::{nul:w=30,j=r} | {overwrite} | {overwriteString:w=10,j=r}",
+		"2::{countOverwrites:w=30,j=r} | [Move] captions to the image files", // TODO: Only count overwrites if overwrite is true
+		"2::{countOverwrites:w=30,j=r} | [Hardlink] captions to the image files",
+		"2::{countExistingCaptions:w=30,j=r} | [Merge] captions to the image files",
 		"2::{nul:w=30,j=r} | Replace spaces with [_]",
+	}
+
+	var overwriteString string
+
+	if overwrite {
+		overwriteString = "[O]verwriting existing caption files even if they exist"
+	} else {
+		overwriteString = "[O]nly moving/hardlinking caption files that don't exist"
 	}
 
 	values := map[string]any{
@@ -64,7 +74,11 @@ func (data *DataSet) promptOption() {
 		"countPending":                             data.countPending(),
 		"countFiles":                               data.countFiles(),
 		"countImages":                              data.countImages(),
+		"countOverwrites":                          data.countOverwrites(),
+		"countExistingCaptions":                    data.countExistingCaptions(),
 		"nul":                                      "",
+		"overwrite":                                overwrite,
+		"overwriteString":                          overwriteString,
 	}
 
 	printLogs(toPrint, values)
@@ -76,6 +90,8 @@ func (data *DataSet) promptOption() {
 		data.WriteFiles()
 	case "c":
 		data.CheckIfCaptionsExist()
+	case "o":
+		overwrite = !overwrite
 	case "move":
 		data.CaptionsToImages(move)
 	case "hardlink":

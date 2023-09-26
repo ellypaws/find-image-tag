@@ -12,12 +12,6 @@ import (
 
 var captionLogPrinter = roggy.Printer("caption-handler")
 
-const (
-	move = iota
-	hardlink
-	merge
-)
-
 func (data *DataSet) checkForMissingImages() {
 	wg := &sync.WaitGroup{}
 

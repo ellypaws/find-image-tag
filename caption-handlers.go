@@ -12,6 +12,12 @@ import (
 	"time"
 )
 
+const (
+	move = iota
+	hardlink
+	merge
+)
+
 func (data *DataSet) CaptionsToImages(action int) {
 	for _, image := range data.Images {
 		if image.Caption.Filename == "" {
@@ -19,7 +25,7 @@ func (data *DataSet) CaptionsToImages(action int) {
 			continue
 		}
 
-		// Handle relative directories, get current directory with os.Getwd
+		// Handle relative directories, get current directory with Get working directory
 		currentDir, _ := os.Getwd()
 
 		// If the directory is not an absolute path, join it with the current directory
@@ -52,10 +58,62 @@ func (data *DataSet) CaptionsToImages(action int) {
 				captionLogPrinter.Infof("File linked successfully from %s to %s", from, to)
 			}
 		case merge:
-			// TODO: Combine the caption files.
-			// Append the contents of the caption file to new caption file.
-			// First separate tags by commas in the existing and new caption files.
-			// Then append the new tags to the existing tags and remove duplicates.
+			// Read the contents of the existing caption
+			existingContentBytes, err := os.ReadFile(from)
+			if err != nil {
+				captionLogPrinter.Errorf("Cannot read file: %s. Error: %v", from, err)
+				continue
+			}
+
+			// Read the contents of the new caption
+			newContentBytes, err := os.ReadFile(to)
+			if err != nil {
+				captionLogPrinter.Errorf("Cannot read file: %s. Error: %v", to, err)
+				continue
+			}
+
+			existingContent := string(existingContentBytes)
+			newContent := string(newContentBytes)
+
+			// Split the contents by comma
+			existingTags := strings.Split(existingContent, ",")
+			newTags := strings.Split(newContent, ",")
+
+			// Trim spaces
+			for i, tag := range existingTags {
+				existingTags[i] = strings.TrimSpace(tag)
+			}
+			for i, tag := range newTags {
+				newTags[i] = strings.TrimSpace(tag)
+			}
+
+			// Combine the tags, eliminating duplicates
+			tagMap := make(map[string]bool)
+			for _, tag := range existingTags {
+				tagMap[tag] = true
+			}
+			for _, tag := range newTags {
+				tagMap[tag] = true
+			}
+
+			// Make a slice of the combined tags
+			combinedTags := make([]string, 0, len(tagMap))
+			for tag := range tagMap {
+				combinedTags = append(combinedTags, tag)
+			}
+
+			// Join the tags with commas
+			combinedContent := strings.Join(combinedTags, ", ")
+
+			// Write the combined content to the new caption file
+			err = os.WriteFile(to, []byte(combinedContent), 0644)
+			if err != nil {
+				captionLogPrinter.Errorf("Cannot write to file: %s. Error: %v", to, err)
+			} else {
+				captionLogPrinter.Infof("File combined successfully from %s to %s", from, to)
+			}
+			// Update the image.Caption.Directory to the new directory 'to'
+			image.Caption.Directory = filepath.Dir(to)
 		}
 	}
 }
