@@ -118,28 +118,109 @@ func (data *DataSet) CaptionsToImages(action int) {
 	}
 }
 
-func (data *DataSet) appendNewTags() {
-	// TODO: appendNewTags
-	//	Please write the following code in Go. I basically have a set of txt files with tags
-	//  Prompt for a directory to read and write from
-	//  Example:
-	//	`tag1, tag2, tag3`
-	//
-	//
-	//	And I want to append new tags
-	//
-	//	`newTag, tag1, tag2, tag3`
-	//
-	//
-	//	cleanup spaces and a single new line at the end.
-	//	Only keep unique tags and if the tag already exists, it should just be moved to the beginning.
-	//	Make it match the whole tag and not just partial match.
-	//
-	//  Everything lowercase.
-	//  Handle edge cases where a line might be empty or have only spaces.
-	//  Handle edge cases where a line might have only a comma.
-	//  Handle edge cases where there would be double commas or empty tags.
-	//  Preview the changes to one file before applying to all files and prompt for confirmation.
+func appendNewTags() {
+	scanner := bufio.NewScanner(os.Stdin)
+
+	// Prompt for a directory
+	captionLogPrinter.Infof("Please enter directory path: ")
+	scanner.Scan()
+	directory := scanner.Text()
+
+	// Prompt for new tags
+	captionLogPrinter.Infof("Please enter new tags to add (separated by comma): ")
+	scanner.Scan()
+	newTagsInput := strings.TrimSpace(scanner.Text())
+
+	// Split newTagsInput string to slice of tags
+	newTags := strings.Split(newTagsInput, ",")
+	for i, tag := range newTags {
+		newTags[i] = strings.TrimSpace(strings.ToLower(tag))
+	}
+
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		captionLogPrinter.Errorf("Failed to read directory: %v", err)
+		return
+	}
+
+	changeAll := false
+
+	// Process each file in the directory
+	for _, f := range files {
+		if f.IsDir() || filepath.Ext(f.Name()) != ".txt" {
+			continue
+		}
+
+		// Read the existing tags from the file
+		bs, err := os.ReadFile(filepath.Join(directory, f.Name()))
+		if err != nil {
+			captionLogPrinter.Errorf("Failed to read file: %v", err)
+			continue
+		}
+
+		// Process the content to lower case
+		content := strings.ToLower(string(bs))
+		// Split the content, trim spaces, remove empty tags
+		existingTags := strings.Split(content, ",")
+		for i, tag := range existingTags {
+			existingTags[i] = strings.TrimSpace(tag)
+		}
+
+		// Merge new tags and existing tags eliminating duplicates
+		mergedTags := append(newTags)
+		for _, existingTag := range existingTags {
+			if existingTag == "" {
+				continue
+			}
+
+			existsInNewTags := false
+			for _, newTag := range newTags {
+				if newTag == existingTag {
+					existsInNewTags = true
+					break
+				}
+			}
+
+			if !existsInNewTags {
+				mergedTags = append(mergedTags, existingTag)
+			}
+		}
+
+		// Join the tags with commas
+		newContent := strings.Join(mergedTags, ", ") + "\n"
+
+		if !changeAll {
+			// Preview changes and prompt for confirmation
+			captionLogPrinter.Infof("New content for file %s will be:\n%s", f.Name(), newContent)
+			captionLogPrinter.Infof("Apply changes? (y/n/all): ")
+			scanner.Scan()
+			userInput := scanner.Text()
+			if userInput == "n" {
+				captionLogPrinter.Infof("Changes not applied. Moving to next file.")
+				continue
+			} else if userInput == "all" {
+				changeAll = true
+			}
+		}
+
+		// Write the updated content to the file
+		err = os.WriteFile(filepath.Join(directory, f.Name()), []byte(newContent), 0644)
+		if err != nil {
+			captionLogPrinter.Errorf("Failed to write to file: %v", err)
+			continue
+		}
+
+		// Create a preview snippet of the new text
+		end := len(newContent)
+		desiredLength := len(newTagsInput) + 50
+		if len(newContent) > desiredLength {
+			end = desiredLength
+		}
+		previewSnippet := newContent[:end]
+
+		captionLogPrinter.Infof("Changes applied successfully to %s", f.Name())
+		captionLogPrinter.Debugf("\"%s...\"", previewSnippet)
+	}
 }
 
 func (data *DataSet) replaceSpaces() {

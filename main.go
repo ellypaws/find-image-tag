@@ -110,7 +110,7 @@ func (data *DataSet) promptOption() {
 	case "merge":
 		data.CaptionsToImages(merge)
 	case "append":
-		data.appendNewTags()
+		appendNewTags()
 	case "_":
 		data.replaceSpaces()
 	case "q":
