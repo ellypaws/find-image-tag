@@ -118,6 +118,30 @@ func (data *DataSet) CaptionsToImages(action int) {
 	}
 }
 
+func (data *DataSet) appendNewTags() {
+	// TODO: appendNewTags
+	//	Please write the following code in Go. I basically have a set of txt files with tags
+	//  Prompt for a directory to read and write from
+	//  Example:
+	//	`tag1, tag2, tag3`
+	//
+	//
+	//	And I want to append new tags
+	//
+	//	`newTag, tag1, tag2, tag3`
+	//
+	//
+	//	cleanup spaces and a single new line at the end.
+	//	Only keep unique tags and if the tag already exists, it should just be moved to the beginning.
+	//	Make it match the whole tag and not just partial match.
+	//
+	//  Everything lowercase.
+	//  Handle edge cases where a line might be empty or have only spaces.
+	//  Handle edge cases where a line might have only a comma.
+	//  Handle edge cases where there would be double commas or empty tags.
+	//  Preview the changes to one file before applying to all files and prompt for confirmation.
+}
+
 func (data *DataSet) replaceSpaces() {
 	re := regexp.MustCompile(`(\w) ([(]?\w)`)
 	wg := &sync.WaitGroup{}

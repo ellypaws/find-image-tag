@@ -56,6 +56,7 @@ func (data *DataSet) promptOption() {
 		"2::{countImagesWithoutCaptions:w=30,j=r} | [Move] captions to the image files",     // TODO: Only count overwrites if overwrite is true
 		"2::{countImagesWithoutCaptions:w=30,j=r} | [Hardlink] captions to the image files", // TODO: Use countOverwrites() after fixing implementation
 		"2::{countExistingCaptions:w=30,j=r} | [Merge] captions to the image files",         // TODO: Fix countExistingCaptions() implementation
+		"2::{countExistingCaptions:w=30,j=r} | [Append] new tags to the caption file",
 		"2::{nul:w=30,j=r} | Replace spaces with [_]",
 	}
 
@@ -108,6 +109,8 @@ func (data *DataSet) promptOption() {
 		data.checkForMissingImages()
 	case "merge":
 		data.CaptionsToImages(merge)
+	case "append":
+		data.appendNewTags()
 	case "_":
 		data.replaceSpaces()
 	case "q":
