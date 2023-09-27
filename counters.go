@@ -37,6 +37,8 @@ func (data *DataSet) countOverwrites() int {
 
 func (data *DataSet) countExistingCaptions() int {
 	// Use os.Stat
+	// TODO: Implementation broken because we're not looking
+	// TODO: at the directory stored inside the Image struct
 	count := 0
 	for key, _ := range data.Images {
 		if _, err := os.Stat(key + ".txt"); err == nil {
