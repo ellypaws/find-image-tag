@@ -36,7 +36,7 @@ const (
 	addImage
 )
 
-func (data *DataSet) WriteFiles(filter int) {
+func (data *DataSet) WriteFiles(filter int, directory string) {
 	var regex string
 	switch filter {
 	case addBoth:
@@ -47,16 +47,14 @@ func (data *DataSet) WriteFiles(filter int) {
 		regex = `(?i)\.(jpe?g|png|gif|bmp)$`
 	}
 	//regex := `(?i)\.(jpe?g|png|gif|bmp|txt)$`
-	var directoryToRead string
-	fmt.Print("Enter the directory to read: ")
-	_, _ = fmt.Scanln(&directoryToRead)
-	if directoryToRead == "" {
-		directoryToRead = "."
+
+	if directory == "" {
+		directory = "."
 	}
 
 	extRegex, _ := regexp.Compile(regex)
 
-	err := filepath.Walk(directoryToRead, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}

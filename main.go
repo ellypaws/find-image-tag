@@ -33,70 +33,78 @@ func (data *DataSet) promptOption() {
 
 	roggy.Flush()
 
+	countImagesWithCaptions := data.countImagesWithCaptions()
+	countCaptionDirectoryMatchImageDirectory := data.countCaptionDirectoryMatchImageDirectory()
+	countImagesWithoutCaptions := data.countImagesWithoutCaptions()
+	countPending := data.countPending()
+	countFiles := data.countFiles()
+	countImages := data.countImages()
+	countOverwrites := data.countOverwrites()             // pass overwrite bool
+	countExistingCaptions := data.countExistingCaptions() // pass overwrite bool
+	countTotalCaptions := data.countPending() + data.countImagesWithCaptions()
+	//countToMove := data.countImagesWithCaptions() - data.countCaptionDirectoryMatchImageDirectory()
+	nul := ""
+	var ow any
+
+	var overwriteString string
+	if overwrite {
+		overwriteString = "[O]verwriting existing caption files even if they exist"
+		ow = countOverwrites
+	} else {
+		overwriteString = "[O]nly moving/hardlinking caption files that don't exist"
+		ow = nul
+	}
+
+	roggyPrinter.Infof("countOverwrites: %v", countOverwrites)
+
 	toPrint := []string{
 		"1::" + roggy.Rainbowize("---") + " Stats " + roggy.Rainbowize("---"),
 		"2::",
-		"2::{countImagesWithCaptions:w=30,j=r} | Images with captions",
-		"2::{countCaptionDirectoryMatchImageDirectory:w=30,j=r} | Images with captions that match directories",
-		"2::{countImagesWithoutCaptions:w=30,j=r} | Missing captions",
-		"2::{countPending:w=30,j=r} | Pending text files",
+		stemp.Inline("2::{0:w=30,j=r} | Images with captions", countImagesWithCaptions),
+		stemp.Inline("2::{0:w=30,j=r} | Images with captions that match directories", countCaptionDirectoryMatchImageDirectory),
+		stemp.Inline("2::{0:w=30,j=r} | Missing captions", countImagesWithoutCaptions),
+		stemp.Inline("2::{0:w=30,j=r} | Pending text files", countPending),
 		"1::" + roggy.Rainbowize("---") + " Image Captioning " + roggy.Rainbowize("---"),
 		"2::",
-		"2::{countFiles:w=30,j=r} | [+] Add files to the dataset",
-		"2::{countTotalCaptions:w=30,j=r} | [+c] Add captions to the dataset",
-		"2::{countImages:w=30,j=r} | [+i] Add images to the dataset",
-		"2::{countImages:w=30,j=r} | [C]heck if each image has a caption",
-		"2::{nul:w=30,j=r} | [P]rint the dataset as JSON",
-		"2::{nul:w=30,j=r} | [R]eset the dataset",
-		"2::{nul:w=30,j=r} | [W]rite the dataset as a JSON file",
-		"2::{countPending:w=30,j=r} | Append [t]ext files to matching images",
-		"2::{nul:w=30,j=r} | Check for captions without matching [i]mages",
-		"2::{nul:w=30,j=r} | [Q]uit",
+		stemp.Inline("2::{0:w=30,j=r} | [+] Add files to the dataset", countFiles),
+		stemp.Inline("2::{0:w=30,j=r} | [+c] Add captions to the dataset", countTotalCaptions),
+		stemp.Inline("2::{0:w=30,j=r} | [+i] Add images to the dataset", countImages),
+		stemp.Inline("2::{0:w=30,j=r} | [C]heck if each image has a caption", countImages),
+		stemp.Inline("2::{0:w=30,j=r} | [P]rint the dataset as JSON", nul),
+		stemp.Inline("2::{0:w=30,j=r} | [R]eset the dataset", nul),
+		stemp.Inline("2::{0:w=30,j=r} | [W]rite the dataset as a JSON file", nul),
+		stemp.Inline("2::{0:w=30,j=r} | Append [t]ext files to matching images", countPending),
+		stemp.Inline("2::{0:w=30,j=r} | Check for captions without matching [i]mages", nul),
+		stemp.Inline("2::{0:w=30,j=r} | [Q]uit", nul),
 		"1::" + roggy.Rainbowize("---") + " Actions " + roggy.Rainbowize("---"),
 		"2::",
-		"2::{nul:w=30,j=r} | {overwrite} | {overwriteString:w=10,j=r}",
-		"2::{countToMove:w=30,j=r} | [Move] captions to the image files",                  // TODO: Only count overwrites if overwrite is true
-		"2::{countToMove:w=30,j=r} | [Hardlink] captions to the image files",              // TODO: Use countOverwrites() after fixing implementation
-		"2::{countExistingCaptions:w=30,j=r} | [Merge] new captions to existing captions", // TODO: Fix countExistingCaptions() implementation
-		"2::{countExistingCaptions:w=30,j=r} | [Append] new tags to the caption file",
-		"2::{nul:w=30,j=r} | Replace spaces with [_]",
+		stemp.Inline("2::{0:w=30,j=r} | {1} | {2:w=10,j=r}", ow, overwrite, overwriteString),
+		stemp.Inline("2::{0:w=30,j=r} | [Move] captions to the image files", countOverwrites),
+		stemp.Inline("2::{0:w=30,j=r} | [Hardlink] captions to the image files", countOverwrites),
+		stemp.Inline("2::{0:w=30,j=r} | [Merge] new captions to existing captions", countExistingCaptions), // TODO: Fix countExistingCaptions() implementation
+		stemp.Inline("2::{0:w=30,j=r} | [Append] new tags to the caption file", countExistingCaptions),
+		stemp.Inline("2::{0:w=30,j=r} | Replace spaces with [_]", nul),
 	}
 
-	var overwriteString string
-
-	if overwrite {
-		overwriteString = "[O]verwriting existing caption files even if they exist"
-	} else {
-		overwriteString = "[O]nly moving/hardlinking caption files that don't exist"
-	}
-
-	values := map[string]any{
-		"countImagesWithCaptions":                  data.countImagesWithCaptions(),
-		"countCaptionDirectoryMatchImageDirectory": data.countCaptionDirectoryMatchImageDirectory(),
-		"countImagesWithoutCaptions":               data.countImagesWithoutCaptions(),
-		"countPending":                             data.countPending(),
-		"countFiles":                               data.countFiles(),
-		"countImages":                              data.countImages(),
-		"countOverwrites":                          data.countOverwrites(),       // pass overwrite bool
-		"countExistingCaptions":                    data.countExistingCaptions(), // pass overwrite bool
-		"countTotalCaptions":                       data.countPending() + data.countImagesWithCaptions(),
-		"countToMove":                              data.countImagesWithCaptions() - data.countCaptionDirectoryMatchImageDirectory(),
-		"nul":                                      "",
-		"overwrite":                                overwrite,
-		"overwriteString":                          overwriteString,
-	}
-
-	printLogs(toPrint, values)
+	printLogs(toPrint)
 
 	choice, _ := getInput("Enter your choice: ", reader)
 
-	switch strings.ToLower(choice) {
+	choice = strings.ToLower(choice)
+
+	var directory string
+	if strings.Contains(choice, "+") {
+		fmt.Print("Enter the directory to read: ")
+		_, _ = fmt.Scanln(directory)
+	}
+
+	switch choice {
 	case "+":
-		data.WriteFiles(addBoth)
+		data.WriteFiles(addBoth, directory)
 	case "+c":
-		data.WriteFiles(addCaption)
+		data.WriteFiles(addCaption, directory)
 	case "+i":
-		data.WriteFiles(addImage)
+		data.WriteFiles(addImage, directory)
 	case "c":
 		data.CheckIfCaptionsExist()
 	case "o":
@@ -161,7 +169,7 @@ func (data *DataSet) writeJson() {
 	_, _ = file.Write(bytes)
 }
 
-func printLogs(toPrint []string, values map[string]any) {
+func printLogs(toPrint []string) {
 	var buffer []string
 	bufferLevel := ""
 
@@ -180,7 +188,7 @@ func printLogs(toPrint []string, values map[string]any) {
 
 		if bufferLevel != "" && bufferLevel != debugLevel {
 			output := strings.Join(buffer, "\n")
-			printLog(bufferLevel, output, values)
+			printLog(bufferLevel, output)
 			buffer = []string{}
 		}
 
@@ -191,7 +199,7 @@ func printLogs(toPrint []string, values map[string]any) {
 	// last batch
 	if len(buffer) > 0 {
 		output := strings.Join(buffer, "\n")
-		printLog(bufferLevel, output, values)
+		printLog(bufferLevel, output)
 	}
 }
 
@@ -204,10 +212,11 @@ var logFunctions = map[string]func(f string, message ...interface{}){
 	"4": roggyPrinter.Debugf,
 }
 
-func printLog(debugLevel string, output string, values map[string]any) {
-	if logFunc, ok := logFunctions[debugLevel]; ok {
-		toOutput := stemp.Compile(output, values)
-		logFunc(toOutput)
+func printLog(debugLevel string, output string) {
+	nilMap := map[string]any{}
+	if funcToUse, ok := logFunctions[debugLevel]; ok {
+		toOutput := stemp.Compile(output, nilMap)
+		funcToUse(toOutput)
 	} else {
 		fmt.Printf("Debug level outside valid range: %s", debugLevel)
 		return
