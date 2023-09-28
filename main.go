@@ -43,7 +43,9 @@ func (data *DataSet) promptOption() {
 		"1::" + roggy.Rainbowize("---") + " Image Captioning " + roggy.Rainbowize("---"),
 		"2::",
 		"2::{countFiles:w=30,j=r} | [+] Add files to the dataset",
-		"2::{countImages:w=30,j=r} | [C]heck each image has a caption",
+		"2::{countTotalCaptions:w=30,j=r} | [+c] Add captions to the dataset",
+		"2::{countImages:w=30,j=r} | [+i] Add images to the dataset",
+		"2::{countImages:w=30,j=r} | [C]heck if each image has a caption",
 		"2::{nul:w=30,j=r} | [P]rint the dataset as JSON",
 		"2::{nul:w=30,j=r} | [R]eset the dataset",
 		"2::{nul:w=30,j=r} | [W]rite the dataset as a JSON file",
@@ -53,9 +55,9 @@ func (data *DataSet) promptOption() {
 		"1::" + roggy.Rainbowize("---") + " Actions " + roggy.Rainbowize("---"),
 		"2::",
 		"2::{nul:w=30,j=r} | {overwrite} | {overwriteString:w=10,j=r}",
-		"2::{countImagesWithoutCaptions:w=30,j=r} | [Move] captions to the image files",     // TODO: Only count overwrites if overwrite is true
-		"2::{countImagesWithoutCaptions:w=30,j=r} | [Hardlink] captions to the image files", // TODO: Use countOverwrites() after fixing implementation
-		"2::{countExistingCaptions:w=30,j=r} | [Merge] captions to the image files",         // TODO: Fix countExistingCaptions() implementation
+		"2::{countToMove:w=30,j=r} | [Move] captions to the image files",                  // TODO: Only count overwrites if overwrite is true
+		"2::{countToMove:w=30,j=r} | [Hardlink] captions to the image files",              // TODO: Use countOverwrites() after fixing implementation
+		"2::{countExistingCaptions:w=30,j=r} | [Merge] new captions to existing captions", // TODO: Fix countExistingCaptions() implementation
 		"2::{countExistingCaptions:w=30,j=r} | [Append] new tags to the caption file",
 		"2::{nul:w=30,j=r} | Replace spaces with [_]",
 	}
@@ -77,6 +79,8 @@ func (data *DataSet) promptOption() {
 		"countImages":                              data.countImages(),
 		"countOverwrites":                          data.countOverwrites(),       // pass overwrite bool
 		"countExistingCaptions":                    data.countExistingCaptions(), // pass overwrite bool
+		"countTotalCaptions":                       data.countPending() + data.countImagesWithCaptions(),
+		"countToMove":                              data.countImagesWithCaptions() - data.countCaptionDirectoryMatchImageDirectory(),
 		"nul":                                      "",
 		"overwrite":                                overwrite,
 		"overwriteString":                          overwriteString,
@@ -88,7 +92,11 @@ func (data *DataSet) promptOption() {
 
 	switch strings.ToLower(choice) {
 	case "+":
-		data.WriteFiles()
+		data.WriteFiles(addBoth)
+	case "+c":
+		data.WriteFiles(addCaption)
+	case "+i":
+		data.WriteFiles(addImage)
 	case "c":
 		data.CheckIfCaptionsExist()
 	case "o":

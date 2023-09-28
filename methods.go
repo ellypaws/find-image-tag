@@ -30,8 +30,23 @@ func (data *DataSet) checkForMissingImages() {
 	wg.Wait()
 }
 
-func (data *DataSet) WriteFiles() {
-	regex := `(?i)\.(jpe?g|png|gif|bmp|txt)$`
+const (
+	addBoth = iota
+	addCaption
+	addImage
+)
+
+func (data *DataSet) WriteFiles(filter int) {
+	var regex string
+	switch filter {
+	case addBoth:
+		regex = `(?i)\.(jpe?g|png|gif|bmp|txt)$`
+	case addCaption:
+		regex = `(?i)\.(txt)$`
+	case addImage:
+		regex = `(?i)\.(jpe?g|png|gif|bmp)$`
+	}
+	//regex := `(?i)\.(jpe?g|png|gif|bmp|txt)$`
 	var directoryToRead string
 	fmt.Print("Enter the directory to read: ")
 	_, _ = fmt.Scanln(&directoryToRead)
