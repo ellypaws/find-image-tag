@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"find-image-tag/tui"
 	"fmt"
 	"github.com/TylerBrock/colorjson"
 	"github.com/nokusukun/roggy"
@@ -16,16 +17,17 @@ var roggyNoTrace = roggy.Printer("main-service")
 var overwrite bool
 
 func main() {
-	// Read all the filenames of image files in the image directory
-
-	roggy.LogLevel = roggy.TypeDebug
-	roggyPrinter.Debug("Starting main service")
-	roggyPrinter.Sync = true
-	roggyNoTrace.NoTrace = true
-
-	data := InitDataSet()
-
-	data.promptOption()
+	//// Read all the filenames of image files in the image directory
+	//
+	//roggy.LogLevel = roggy.TypeDebug
+	//roggyPrinter.Debug("Starting main service")
+	//roggyPrinter.Sync = true
+	//roggyNoTrace.NoTrace = true
+	//
+	//data := InitDataSet()
+	//
+	//data.promptOption()
+	tui.Main()
 }
 
 var validChoice = true
