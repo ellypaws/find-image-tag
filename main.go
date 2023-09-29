@@ -28,7 +28,10 @@ func main() {
 	data.promptOption()
 }
 
+var validChoice = true
+
 func (data *DataSet) promptOption() {
+
 	reader := bufio.NewReader(os.Stdin)
 
 	roggy.Flush()
@@ -39,23 +42,27 @@ func (data *DataSet) promptOption() {
 	countPending := data.countPending()
 	countFiles := data.countFiles()
 	countImages := data.countImages()
-	countOverwrites := data.countOverwrites()             // pass overwrite bool
-	countExistingCaptions := data.countExistingCaptions() // pass overwrite bool
+	countOverwrites := data.countOverwrites(overwrite)
+	countCaptionsToMerge := data.countCaptionsToMerge()
 	countTotalCaptions := data.countPending() + data.countImagesWithCaptions()
+	countImagesWithCaptionsNextToThem := data.countImagesWithCaptionsNextToThem()
+	offSet := len(fmt.Sprintf(" + %d -> %d", countImagesWithCaptionsNextToThem, countImagesWithCaptions))
+	moveString := fmt.Sprintf("{0:w=%d,j=r} + {1:j=r} -> {2:j=r}", 30-offSet)
 	//countToMove := data.countImagesWithCaptions() - data.countCaptionDirectoryMatchImageDirectory()
 	nul := ""
 	var ow any
 
 	var overwriteString string
+	var moveOverwriteString string
 	if overwrite {
 		overwriteString = "[O]verwriting existing caption files even if they exist"
+		moveOverwriteString = "and overwrite captions to the image files"
 		ow = countOverwrites
 	} else {
 		overwriteString = "[O]nly moving/hardlinking caption files that don't exist"
+		moveOverwriteString = "missing captions to the image files"
 		ow = nul
 	}
-
-	roggyPrinter.Infof("countOverwrites: %v", countOverwrites)
 
 	toPrint := []string{
 		"1::" + roggy.Rainbowize("---") + " Stats " + roggy.Rainbowize("---"),
@@ -79,23 +86,31 @@ func (data *DataSet) promptOption() {
 		"1::" + roggy.Rainbowize("---") + " Actions " + roggy.Rainbowize("---"),
 		"2::",
 		stemp.Inline("2::{0:w=30,j=r} | {1} | {2:w=10,j=r}", ow, overwrite, overwriteString),
-		stemp.Inline("2::{0:w=30,j=r} | [Move] captions to the image files", countOverwrites),
-		stemp.Inline("2::{0:w=30,j=r} | [Hardlink] captions to the image files", countOverwrites),
-		stemp.Inline("2::{0:w=30,j=r} | [Merge] new captions to existing captions", countExistingCaptions), // TODO: Fix countExistingCaptions() implementation
-		stemp.Inline("2::{0:w=30,j=r} | [Append] new tags to the caption file", countExistingCaptions),
+		stemp.Inline("2::"+moveString+" | [Move] {3}", countImagesWithCaptionsNextToThem, countOverwrites, countImagesWithCaptions, moveOverwriteString),
+		stemp.Inline("2::"+moveString+" | [Hardlink] {3}", countImagesWithCaptionsNextToThem, countOverwrites, countImagesWithCaptions, moveOverwriteString),
+		stemp.Inline("2::{0:w=30,j=r} | [Merge] new captions to existing captions", countCaptionsToMerge),
+		stemp.Inline("2::{0:w=30,j=r} | [Append] new tags to captions (dir)", countImagesWithCaptionsNextToThem),
 		stemp.Inline("2::{0:w=30,j=r} | Replace spaces with [_]", nul),
 	}
 
 	printLogs(toPrint)
 
+	if !validChoice {
+		roggyPrinter.Errorf("Invalid choice. Please try again.")
+		validChoice = true
+	}
 	choice, _ := getInput("Enter your choice: ", reader)
 
 	choice = strings.ToLower(choice)
 
 	var directory string
-	if strings.Contains(choice, "+") {
+	switch choice {
+	case "+", "+c", "+i":
 		fmt.Print("Enter the directory to read: ")
-		_, _ = fmt.Scanln(directory)
+		_, _ = fmt.Scanln(&directory)
+		if _, err := os.Stat(directory); os.IsNotExist(err) {
+			choice = ""
+		}
 	}
 
 	switch choice {
@@ -110,9 +125,9 @@ func (data *DataSet) promptOption() {
 	case "o":
 		overwrite = !overwrite
 	case "move":
-		data.CaptionsToImages(move)
+		data.CaptionsToImages(move, overwrite)
 	case "hardlink":
-		data.CaptionsToImages(hardlink)
+		data.CaptionsToImages(hardlink, overwrite)
 	case "p":
 		data.prettyJson()
 	case "w":
@@ -124,7 +139,7 @@ func (data *DataSet) promptOption() {
 	case "i":
 		data.checkForMissingImages()
 	case "merge":
-		data.CaptionsToImages(merge)
+		data.CaptionsToImages(merge, overwrite)
 	case "append":
 		appendNewTags()
 	case "_":
@@ -132,7 +147,7 @@ func (data *DataSet) promptOption() {
 	case "q":
 		return
 	default:
-		fmt.Println("Invalid choice")
+		validChoice = false
 	}
 
 	data.promptOption()

@@ -18,10 +18,10 @@ const (
 	merge
 )
 
-func (data *DataSet) CaptionsToImages(action int) {
+func (data *DataSet) CaptionsToImages(action int, overwrite bool) {
 	for _, image := range data.Images {
 		if image.Caption.Filename == "" {
-			captionLogPrinter.Noticef("Image %s does not have a caption", image.Filename, "Skipping...")
+			captionLogPrinter.Noticef("NO CAPTION: Image %s does not have a caption. Skipping...", image.Filename)
 			continue
 		}
 
@@ -40,16 +40,53 @@ func (data *DataSet) CaptionsToImages(action int) {
 		from := filepath.Join(image.Caption.Directory, image.Caption.Filename)
 		to := filepath.Join(image.Directory, image.Caption.Filename)
 
+		if from == to {
+			captionLogPrinter.Noticef("SAME DIR: Directory of caption is already the same as the image. Skipping...")
+			continue
+		}
+
 		switch action {
 		case move:
+			// Check if the file already exists
+			_, err := os.Stat(to)
+			if err == nil {
+				if !overwrite {
+					captionLogPrinter.Noticef("EXIST: File already exists. Skipping...")
+					continue
+				} else {
+					captionLogPrinter.Noticef("OVERWRITE: File already exists. Overwriting...")
+				}
+			}
+
 			// Move the file. On many file systems, this is a simple rename operation.
-			err := os.Rename(from, to)
+			err = os.Rename(from, to)
 			if err != nil {
 				captionLogPrinter.Errorf("Error moving file: %v", err)
 			} else {
 				captionLogPrinter.Noticef("File moved successfully from %s to %s", from, to)
 			}
 		case hardlink:
+			// Check if the file already exists
+			if !overwrite {
+				_, err := os.Stat(to)
+				if err == nil {
+					captionLogPrinter.Noticef("EXIST: File already exists. Skipping...")
+					continue
+				}
+			}
+
+			if overwrite {
+				_, err := os.Stat(to)
+				if err == nil {
+					captionLogPrinter.Noticef("EXIST: File already exists. Overwriting...")
+					err = os.Remove(to)
+					if err != nil {
+						captionLogPrinter.Errorf("Error removing file: %v", err)
+						continue
+					}
+				}
+			}
+
 			// Create a hardlink of the file.
 			err := os.Link(from, to)
 			if err != nil {
@@ -112,9 +149,9 @@ func (data *DataSet) CaptionsToImages(action int) {
 			} else {
 				captionLogPrinter.Infof("File combined successfully from %s to %s", from, to)
 			}
-			// Update the image.Caption.Directory to the new directory 'to'
-			image.Caption.Directory = filepath.Dir(to)
 		}
+		// Update the image.Caption.Directory to the new directory 'to'
+		image.Caption.Directory = filepath.Dir(to)
 	}
 }
 
