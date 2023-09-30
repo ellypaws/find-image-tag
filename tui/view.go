@@ -16,8 +16,9 @@ func (m model) View() string {
 		} else {
 			m.menu[i].SetStyles(unfocused)
 		}
+		//view += m.menu[i].View() + "\n"
 	}
-	view = m.menu[0].View() + "\n"
+	view += m.menu[0].View() + "\n"
 	view += m.menu[1].View() + "\n"
 
 	// TODO: Fix height viewport

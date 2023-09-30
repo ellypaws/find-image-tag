@@ -3,6 +3,7 @@ package tui
 import (
 	"find-image-tag/tui/autocomplete"
 	"github.com/charmbracelet/bubbles/progress"
+	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbletea"
 	"os"
 	"path/filepath"
@@ -26,12 +27,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	case addMultipleMsg:
-		population := m.table.SelectedRow()[3]
-		population = strings.Replace(population, ",", "", -1)
-		newPop, _ := strconv.Atoi(population)
-		newPop++
-		m.table.SelectedRow()[3] = formatWithComma(newPop)
-		m.table.UpdateViewport()
+		var numString string
+		var modelToUpdate *table.Model
+		var toUpdate *string
+
+		// get the cell's address
+		if m.menu[m.activeMenu].Focused() {
+			modelToUpdate = &m.menu[m.activeMenu]
+			toUpdate = &modelToUpdate.SelectedRow()[0]
+		} else if m.table.Focused() {
+			modelToUpdate = &m.table
+			toUpdate = &modelToUpdate.SelectedRow()[3]
+		}
+		numString = *toUpdate
+		numString = strings.Replace(numString, ",", "", -1)
+		newNum, _ := strconv.Atoi(numString)
+		newNum++
+		newNumString := formatWithComma(newNum)
+
+		// change the desired cell using the pointer
+		*toUpdate = newNumString
+		//m.menu[m.activeMenu].SelectedRow()[0] = newNumString
+		//m.menu[m.activeMenu].UpdateViewport() // this is how we update after
+		modelToUpdate.UpdateViewport()
 
 		if msg.current%10 == 0 { // Only update progress for multiples of 5
 			currentProgress := float64(msg.current) / float64(msg.total)
@@ -157,11 +175,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.menu[i+1].Focus()
 					m.menu[i+1].SetCursor(0)
 					m.menu[i+1].SetStyles(focused)
+					m.activeMenu = i + 1
 					return m, nil
 				}
 				if i > 0 && msg.String() == "up" && m.menu[i].Cursor() == 0 {
 					m.menu[i].Blur()
 					m.menu[i-1].Focus()
+					m.activeMenu = i - 1
 					return m, nil
 				}
 			}

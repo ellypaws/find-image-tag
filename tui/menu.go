@@ -12,8 +12,8 @@ func NewMenu() []table.Model {
 
 func statsTable() table.Model {
 	columns := []table.Column{
-		{Title: "#", Width: 4},
-		{Title: "Stats", Width: 20},
+		{Title: "#", Width: 6},
+		{Title: "Stats", Width: 50},
 	}
 
 	rows := []table.Row{
@@ -27,14 +27,14 @@ func statsTable() table.Model {
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(7),
+		table.WithHeight(4),
 	)
 }
 
 func captionsTable() table.Model {
 	columns := []table.Column{
-		{Title: "#", Width: 4},
-		{Title: "Captions", Width: 20},
+		{Title: "#", Width: 6},
+		{Title: "Captions", Width: 50},
 	}
 
 	rows := []table.Row{
@@ -54,16 +54,16 @@ func captionsTable() table.Model {
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(false),
-		table.WithHeight(7),
+		table.WithHeight(10),
 	)
 }
 
 func actionsTable() table.Model {
 	columns := []table.Column{
-		{Title: "Current", Width: 4},
-		{Title: "New", Width: 4},
-		{Title: "Total", Width: 4},
-		{Title: "Actions", Width: 20},
+		{Title: "Current", Width: 6},
+		{Title: "New", Width: 6},
+		{Title: "Total", Width: 6},
+		{Title: "Actions", Width: 50},
 	}
 
 	rows := []table.Row{
@@ -81,32 +81,3 @@ func actionsTable() table.Model {
 		table.WithHeight(7),
 	)
 }
-
-//toPrint := []string{
-//"1::" + roggy.Rainbowize("---") + " Stats " + roggy.Rainbowize("---"),
-//"2::",
-//stemp.Inline("2::{0:w=30,j=r} | Images with captions", countImagesWithCaptions),
-//stemp.Inline("2::{0:w=30,j=r} | Images with captions that match directories", countCaptionDirectoryMatchImageDirectory),
-//stemp.Inline("2::{0:w=30,j=r} | Missing captions", countImagesWithoutCaptions),
-//stemp.Inline("2::{0:w=30,j=r} | Pending text files", countPending),
-//"1::" + roggy.Rainbowize("---") + " Image Captioning " + roggy.Rainbowize("---"),
-//"2::",
-//stemp.Inline("2::{0:w=30,j=r} | [+] Add files to the dataset", countFiles),
-//stemp.Inline("2::{0:w=30,j=r} | [+c] Add captions to the dataset", countTotalCaptions),
-//stemp.Inline("2::{0:w=30,j=r} | [+i] Add images to the dataset", countImages),
-//stemp.Inline("2::{0:w=30,j=r} | [C]heck if each image has a caption", countImages),
-//stemp.Inline("2::{0:w=30,j=r} | [P]rint the dataset as JSON", nul),
-//stemp.Inline("2::{0:w=30,j=r} | [R]eset the dataset", nul),
-//stemp.Inline("2::{0:w=30,j=r} | [W]rite the dataset as a JSON file", nul),
-//stemp.Inline("2::{0:w=30,j=r} | Append [t]ext files to matching images", countPending),
-//stemp.Inline("2::{0:w=30,j=r} | Check for captions without matching [i]mages", nul),
-//stemp.Inline("2::{0:w=30,j=r} | [Q]uit", nul),
-//"1::" + roggy.Rainbowize("---") + " Actions " + roggy.Rainbowize("---"),
-//"2::",
-//stemp.Inline("2::{0:w=30,j=r} | {1} | {2:w=10,j=r}", ow, overwrite, overwriteString),
-//stemp.Inline("2::"+moveString+" | [Move] {3}", countImagesWithCaptionsNextToThem, countOverwrites, countImagesWithCaptions, moveOverwriteString),
-//stemp.Inline("2::"+moveString+" | [Hardlink] {3}", countImagesWithCaptionsNextToThem, countOverwrites, countImagesWithCaptions, moveOverwriteString),
-//stemp.Inline("2::{0:w=30,j=r} | [Merge] new captions to existing captions", countCaptionsToMerge),
-//stemp.Inline("2::{0:w=30,j=r} | [Append] new tags to captions (dir)", countImagesWithCaptionsNextToThem),
-//stemp.Inline("2::{0:w=30,j=r} | Replace spaces with [_]", nul),
-//}
