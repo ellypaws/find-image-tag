@@ -14,7 +14,7 @@ import (
 
 var captionLogPrinter = roggy.Printer("caption-handler")
 
-func (data *DataSet) checkForMissingImages() {
+func (data *DataSet) CheckForMissingImages() {
 	wg := &sync.WaitGroup{}
 
 	for index := range data.TempCaption {
@@ -110,7 +110,7 @@ func (data *DataSet) WriteFiles(filter int, directory string) {
 	data.AppendCaptionsConcurrently()
 }
 
-func (data *DataSet) prettyJson() {
+func (data *DataSet) PrettyJson() {
 	var obj map[string]any
 	bytes, _ := json.Marshal(data)
 	_ = json.Unmarshal(bytes, &obj)
@@ -124,7 +124,7 @@ func (data *DataSet) prettyJson() {
 	roggyPrinter.Infof(string(byteArray))
 }
 
-func (data *DataSet) writeJson() {
+func (data *DataSet) WriteJson() {
 	roggyPrinter.Infof("Writing dataset to file...")
 	file, _ := os.Create("dataset.json")
 	defer func(file *os.File) {

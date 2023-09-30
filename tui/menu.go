@@ -115,25 +115,25 @@ func (m model) captionsTable() (tbl table.Model, keys Keys, enter EnterActions) 
 			return func() tea.Msg { return directoryPrompt(AddImage) }
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{1, CheckExist} }
+			return func() tea.Msg { return Actions{CaptionsMenu, CheckExist} }
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{1, Print} }
+			return func() tea.Msg { return Actions{CaptionsMenu, Print} }
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{1, Reset} }
+			return func() tea.Msg { return Actions{CaptionsMenu, Reset} }
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{1, WriteJSON} }
+			return func() tea.Msg { return Actions{CaptionsMenu, WriteJSON} }
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{1, Append} }
+			return func() tea.Msg { return Actions{CaptionsMenu, Append} }
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{1, CheckMissing} }
+			return func() tea.Msg { return Actions{CaptionsMenu, CheckMissing} }
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{1, Quit} }
+			return func() tea.Msg { return Actions{CaptionsMenu, Quit} }
 		},
 	}
 
@@ -147,10 +147,10 @@ func (m model) captionsTable() (tbl table.Model, keys Keys, enter EnterActions) 
 
 func (m model) actionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 	columns := []table.Column{
-		{Title: "Current", Width: 6},
+		{Title: "Current", Width: 8},
 		{Title: "New", Width: 6},
-		{Title: "Total", Width: 6},
-		{Title: "Actions", Width: 50},
+		{Title: "Total", Width: 8},
+		{Title: "Actions", Width: 40},
 	}
 
 	rows := []table.Row{
@@ -171,16 +171,19 @@ func (m model) actionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 
 	function := EnterActions{
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{2, MoveCaptions} }
+			return func() tea.Msg { return Actions{ActionsMenu, MoveCaptions} }
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{2, Hardlink} }
+			return func() tea.Msg { return Actions{ActionsMenu, Hardlink} }
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{2, Merge} }
+			return func() tea.Msg { return Actions{ActionsMenu, Merge} }
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{2, AddTags} }
+			return func() tea.Msg { return Actions{ActionsMenu, AddTags} }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{ActionsMenu, Underscores} }
 		},
 	}
 

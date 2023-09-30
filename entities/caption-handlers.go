@@ -155,7 +155,7 @@ func (data *DataSet) CaptionsToImages(action int, overwrite bool) {
 	}
 }
 
-func AppendNewTags() {
+func AppendNewTags(s string) {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	// Prompt for a directory

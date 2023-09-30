@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"find-image-tag/entities"
 	"find-image-tag/tui/autocomplete"
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/table"
@@ -26,7 +27,43 @@ const (
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var i directoryPrompt
+
 	switch msg := msg.(type) {
+	case Actions:
+		switch msg.Menu {
+		case StatsMenu:
+			switch msg.Do {
+			}
+		case CaptionsMenu:
+			switch msg.Do {
+			case CheckExist:
+				m.DataSet.CheckIfCaptionsExist()
+			case Print:
+				m.DataSet.PrettyJson()
+			case Reset:
+			case WriteJSON:
+				m.DataSet.WriteJson()
+			case Append:
+				m.DataSet.AppendCaptionsConcurrently()
+			case CheckMissing:
+				m.DataSet.CheckForMissingImages()
+			case Quit:
+				return m, tea.Quit
+			}
+		case ActionsMenu:
+			switch msg.Do {
+			case MoveCaptions:
+				m.DataSet.CaptionsToImages(MoveCaptions, m.overwrite)
+			case Hardlink:
+				m.DataSet.CaptionsToImages(Hardlink, m.overwrite)
+			case Merge:
+				m.DataSet.CaptionsToImages(Merge, m.overwrite)
+			case AddTags:
+				i = Underscores
+				m.showTextInput = true
+			}
+		}
+
 	case tea.WindowSizeMsg:
 		m.progress.Width = msg.Width - padding*2 - 4
 		if m.progress.Width > maxWidth {
@@ -131,18 +168,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if m.showTextInput { // Directory handler
 			if msg.Type == tea.KeyEnter {
+				switch i {
+				case AddBoth, AddCaption, AddImage:
+					m.DataSet.WriteFiles(int(i), m.textInput.Value())
+				case Underscores:
+					entities.AppendNewTags(m.textInput.Value())
+				}
 				m.showTextInput = false
 				m.menus[0].Menu.Focus()
-				m.DataSet.WriteFiles(int(i), m.textInput.Value())
 				return m, Refresh()
 			}
+
+			// Auto-complete handler
 			path := m.textInput.Value()
 			if path == "" {
 				path = m.textInput.Placeholder
 			}
-
 			basePath := filepath.Dir(path) // Gets the path up to the last backslash
-
 			if _, err := os.Stat(basePath); err == nil {
 				directories, err := autocomplete.GetDirectories(basePath)
 				if err == nil {
@@ -249,6 +291,12 @@ type msgToPrint string
 type startCount bool
 
 type directoryPrompt int
+
+const (
+	StatsMenu = iota
+	CaptionsMenu
+	ActionsMenu
+)
 
 const (
 	CheckExist = iota
