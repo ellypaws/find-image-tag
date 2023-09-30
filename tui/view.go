@@ -11,7 +11,7 @@ func (m model) View() string {
 	var view string
 	for i, _ := range m.menu {
 		// set the styles depending if they're focused
-		if i == m.activeMenu {
+		if m.menu[i].Focused() {
 			m.menu[i].SetStyles(focused)
 		} else {
 			m.menu[i].SetStyles(unfocused)
@@ -19,6 +19,8 @@ func (m model) View() string {
 	}
 	view = m.menu[0].View() + "\n"
 	view += m.menu[1].View() + "\n"
+
+	// TODO: Fix height viewport
 	//view += m.menu[2].View() + "\n"
 	//for _, menu := range m.menu {
 	//	table := menu.View() + "\n"
