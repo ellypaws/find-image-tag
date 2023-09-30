@@ -34,10 +34,11 @@ func addPopulation(population string) tea.Cmd {
 	}
 }
 
-func addCountImages(count string) tea.Cmd {
+func addCountImages(count string, row int) tea.Cmd {
 	newCountString := addOne(count)
+	updateNumReturn := updateNum{tableID: 0, row: row, column: 0, num: newCountString}
 	return func() tea.Msg {
-		return countImagesWithCaptions(newCountString)
+		return updateNumReturn
 	}
 }
 

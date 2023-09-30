@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"find-image-tag/entities"
 	"find-image-tag/tui/autocomplete"
 	"fmt"
 	"github.com/charmbracelet/bubbles/progress"
@@ -12,8 +13,11 @@ import (
 )
 
 type model struct {
+	DataSet       *entities.DataSet
 	table         table.Model
 	menu          []table.Model
+	keys          [][]tea.Cmd
+	overwrite     bool
 	progress      progress.Model
 	showProgress  bool
 	textInput     textinput.Model

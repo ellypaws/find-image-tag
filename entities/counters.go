@@ -1,23 +1,26 @@
-package main
+package entities
 
 import (
+	"github.com/nokusukun/roggy"
 	"os"
 	"path/filepath"
 )
 
-func (data *DataSet) countFiles() int {
-	return data.countPending() + data.countImages()
+var roggyPrinter = roggy.Printer("main-service")
+
+func (data *DataSet) CountFiles() int {
+	return data.CountPending() + data.CountImages()
 }
 
-func (data *DataSet) countPending() int {
+func (data *DataSet) CountPending() int {
 	return len(data.TempCaption)
 }
 
-func (data *DataSet) countImages() int {
+func (data *DataSet) CountImages() int {
 	return len(data.Images)
 }
 
-func (data *DataSet) countImagesWithCaptions() int {
+func (data *DataSet) CountImagesWithCaptions() int {
 	count := 0
 	for _, image := range data.Images {
 		if image.Caption.Filename != "" {
@@ -27,7 +30,7 @@ func (data *DataSet) countImagesWithCaptions() int {
 	return count
 }
 
-func (data *DataSet) countImagesWithCaptionsNextToThem() int {
+func (data *DataSet) CountImagesWithCaptionsNextToThem() int {
 	count := 0
 	for name, image := range data.Images {
 		filePath := filepath.Join(image.Directory, name+".txt")
@@ -40,7 +43,7 @@ func (data *DataSet) countImagesWithCaptionsNextToThem() int {
 	return count
 }
 
-func (data *DataSet) countOverwrites(overwrite bool) int {
+func (data *DataSet) CountOverwrites(overwrite bool) int {
 	count := 0
 	for _, image := range data.Images {
 
@@ -66,7 +69,7 @@ func (data *DataSet) countOverwrites(overwrite bool) int {
 	return count
 }
 
-// We're counting if the caption file exists literally next to
+// CountCaptionsToMerge We're counting if the caption file exists literally next to
 // the image file. And then we check if the image and captions
 // are in different directories. That means we're appending
 // a new caption in place of the one that already exists alongside
@@ -81,7 +84,7 @@ func (data *DataSet) countOverwrites(overwrite bool) int {
 // 📂 new-caption
 //
 // └── 📄 image.txt
-func (data *DataSet) countCaptionsToMerge() int {
+func (data *DataSet) CountCaptionsToMerge() int {
 	count := 0
 	for _, image := range data.Images {
 
@@ -107,7 +110,7 @@ func (data *DataSet) countCaptionsToMerge() int {
 	return count
 }
 
-func (data *DataSet) countImagesWithoutCaptions() int {
+func (data *DataSet) CountImagesWithoutCaptions() int {
 	count := 0
 	for _, image := range data.Images {
 		if image.Caption.Filename == "" {
@@ -117,7 +120,7 @@ func (data *DataSet) countImagesWithoutCaptions() int {
 	return count
 }
 
-func (data *DataSet) countCaptionDirectoryMatchImageDirectory() int {
+func (data *DataSet) CountCaptionDirectoryMatchImageDirectory() int {
 	count := 0
 	for _, image := range data.Images {
 		if image.Caption.Directory == image.Directory {

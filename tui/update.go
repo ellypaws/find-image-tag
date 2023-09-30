@@ -70,21 +70,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.table.UpdateViewport() // this is how we update after
 
 	// menu handlers
-	case countImagesWithCaptions:
-		// set the first row's first column to the new count
-		m.menu[0].Rows()[0][0] = string(msg)
-		m.menu[0].UpdateViewport()
-	case countCaptionDirectoryMatchImageDirectory:
-	case countImagesWithoutCaptions:
-	case countPending:
-	case countFiles:
-	case countImages:
-	case countOverwrites:
-	case countCaptionsToMerge:
-	case countTotalCaptions:
-	case countImagesWithCaptionsNextToThem:
-	case offSet:
-	case moveString:
+	case updateNum:
+		m.menu[msg.tableID].Rows()[msg.row][msg.column] = msg.num
+		m.menu[msg.tableID].UpdateViewport()
+	//case countImagesWithCaptions:
+	//	// set the first row's first column to the new count
+	//	m.menu[0].Rows()[0][0] = string(msg)
+	//	m.menu[0].UpdateViewport()
+	//case countCaptionDirectoryMatchImageDirectory:
+	//case countImagesWithoutCaptions:
+	//case countPending:
+	//case countFiles:
+	//case countImages:
+	//case countOverwrites:
+	//case countCaptionsToMerge:
+	//case countTotalCaptions:
+	//case countImagesWithCaptionsNextToThem:
+	//case offSet:
+	//case moveString:
 
 	// FrameMsg is sent when the progress bar wants to animate itself
 	case progress.FrameMsg:
@@ -139,15 +142,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 
 			// chosen menu handler
-			if m.menu[0].Cursor() == 0 {
-				return m, addCountImages(m.menu[0].Rows()[0][0])
+			if m.menu[0].Focused() {
+				return m, addCountImages(m.menu[0].Rows()[0][0], m.menu[0].Cursor())
 			}
 			if m.menu[1].Cursor() == 0 {
 				m.showTextInput = true
 				return m, nil
 			}
 
-			if m.table.Cursor() == 1 {
+			if m.table.Focused() && m.table.Cursor() == 1 {
 				m.table.Blur()
 				m.showTextInput = true
 			}
@@ -163,6 +166,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.progress = progress.New(progress.WithDefaultGradient())
 			runCmd := tea.Batch(addMultiple())
 			return m, runCmd
+		case "u":
+			for menuID := range m.menu {
+				for row := range m.menu[menuID].Rows() {
+					cmd := m.keys[menuID][row]
+					if cmd != nil {
+						return m, cmd
+					}
+				}
+			}
 		}
 
 		// menu movement handler
@@ -200,22 +212,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(append(batch, cmd)...)
 }
 
+type updateNum struct {
+	num     string
+	tableID int
+	row     int
+	column  int
+}
 type popMsg string
 type percentMsg float64
 type addMultipleMsg struct {
 	current int
 	total   int
 }
-
-type countImagesWithCaptions string
-type countCaptionDirectoryMatchImageDirectory string
-type countImagesWithoutCaptions string
-type countPending string
-type countFiles string
-type countImages string
-type countOverwrites string
-type countCaptionsToMerge string
-type countTotalCaptions string
-type countImagesWithCaptionsNextToThem string
-type offSet string
-type moveString string

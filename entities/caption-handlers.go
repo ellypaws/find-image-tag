@@ -1,4 +1,4 @@
-package main
+package entities
 
 import (
 	"bufio"
@@ -155,7 +155,7 @@ func (data *DataSet) CaptionsToImages(action int, overwrite bool) {
 	}
 }
 
-func appendNewTags() {
+func AppendNewTags() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	// Prompt for a directory
@@ -260,7 +260,7 @@ func appendNewTags() {
 	}
 }
 
-func (data *DataSet) replaceSpaces() {
+func (data *DataSet) ReplaceSpaces() {
 	re := regexp.MustCompile(`(\w) ([(]?\w)`)
 	wg := &sync.WaitGroup{}
 
@@ -332,7 +332,7 @@ func (data *DataSet) CheckIfCaptionsExist() {
 	wg.Wait()
 }
 
-func (data *DataSet) appendCaptionsConcurrently() {
+func (data *DataSet) AppendCaptionsConcurrently() {
 	startTime := time.Now()
 	var wg sync.WaitGroup
 

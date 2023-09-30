@@ -1,7 +1,9 @@
-package main
+package entities
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/TylerBrock/colorjson"
 	"github.com/nokusukun/roggy"
 	"os"
 	"path/filepath"
@@ -105,5 +107,30 @@ func (data *DataSet) WriteFiles(filter int, directory string) {
 	}
 
 	captionLogPrinter.Infof("Now appending captions to images...")
-	data.appendCaptionsConcurrently()
+	data.AppendCaptionsConcurrently()
+}
+
+func (data *DataSet) prettyJson() {
+	var obj map[string]any
+	bytes, _ := json.Marshal(data)
+	_ = json.Unmarshal(bytes, &obj)
+
+	formatter := colorjson.NewFormatter()
+	formatter.Indent = 2
+
+	byteArray, err := formatter.Marshal(obj)
+	roggyPrinter.Debugf("Byte array: %s", byteArray)
+	roggyPrinter.Debugf("Error: %s", err)
+	roggyPrinter.Infof(string(byteArray))
+}
+
+func (data *DataSet) writeJson() {
+	roggyPrinter.Infof("Writing dataset to file...")
+	file, _ := os.Create("dataset.json")
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
+
+	bytes, _ := json.MarshalIndent(data.Images, "", "  ")
+	_, _ = file.Write(bytes)
 }
