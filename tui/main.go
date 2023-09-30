@@ -70,16 +70,21 @@ func Main() {
 	unfocused.Selected = unfocused.Selected.
 		Foreground(lipgloss.Color("#bbbbbb"))
 
-	m := model{}
-	menu := m.NewMenu()
-	//m.Init()
-
-	m = model{
+	m := model{
 		table:     t,
 		progress:  progress.New(progress.WithDefaultGradient()),
 		textInput: autocomplete.Init(),
-		menus:     menu,
+		menus:     model{}.NewMenu(),
 		DataSet:   entities.InitDataSet(),
+	}
+
+	m.DataSet.Images["testImage1"] = &entities.Image{
+		"testImage1.jpg",
+		".jpg",
+		"F:\\lora",
+		0,
+		nil,
+		entities.Caption{},
 	}
 
 	// set styles for each menu
