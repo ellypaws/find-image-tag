@@ -57,42 +57,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "esc":
-			if m.table.Focused() {
-				m.table.Blur()
-			} else {
-				m.table.Focus()
-			}
-		case "q", "ctrl+c":
-			return m, tea.Quit
-		case "enter":
-			if m.showTextInput {
-				m.showTextInput = false
-				m.table.Focus()
-				tea.Println(m.textInput.Value())
-				return m, nil
-			}
-			if m.table.Cursor() == 1 {
-				m.table.Blur()
-				m.showTextInput = true
-			}
-			return m, tea.Batch(
-				//tea.Printf("Let's go to %s!", m.table.SelectedRow()[1]),
-				addPopulation(m.table.SelectedRow()[3]),
-			)
-		case "a":
-			if m.showTextInput {
-				return m, nil
-			}
-			m.showProgress = true
-			m.progress = progress.New(progress.WithDefaultGradient())
-			runCmd := tea.Batch(addMultiple())
-			return m, runCmd
-		}
-
 		// Directory handler
 		if m.showTextInput {
+			if msg.Type == tea.KeyEnter {
+				m.showTextInput = false
+				m.table.Focus()
+				return m, tea.Println(m.textInput.Value())
+			}
 			path := m.textInput.Value()
 			if path == "" {
 				path = m.textInput.Placeholder
@@ -113,6 +84,34 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.textInput, cmd = m.textInput.Update(msg)
 			return m, cmd
+		}
+
+		switch msg.String() {
+		case "esc":
+			if m.table.Focused() {
+				m.table.Blur()
+			} else {
+				m.table.Focus()
+			}
+		case "q", "ctrl+c":
+			return m, tea.Quit
+		case "enter":
+			if m.table.Cursor() == 1 {
+				m.table.Blur()
+				m.showTextInput = true
+			}
+			return m, tea.Batch(
+				//tea.Printf("Let's go to %s!", m.table.SelectedRow()[1]),
+				addPopulation(m.table.SelectedRow()[3]),
+			)
+		case "a":
+			if m.showTextInput {
+				return m, nil
+			}
+			m.showProgress = true
+			m.progress = progress.New(progress.WithDefaultGradient())
+			runCmd := tea.Batch(addMultiple())
+			return m, runCmd
 		}
 	}
 	m.table, cmd = m.table.Update(msg)
