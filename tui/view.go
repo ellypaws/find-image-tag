@@ -1,10 +1,16 @@
 package tui
 
 func (m model) View() string {
-	view := m.table.View() + "\n"
-	if m.showProgress {
-		view += m.progress.View() + "\n"
-	}
+	var view string
+	view = m.menu[0].View() + "\n"
+	//for _, menu := range m.menu {
+	//	table := menu.View() + "\n"
+	//	view += baseStyle.Render(table) + "\n"
+	//}
+	//view += m.table.View() + "\n"
+	//if m.showProgress {
+	//	view += m.progress.View() + "\n"
+	//}
 
 	view = baseStyle.Render(view) + "\n"
 

@@ -11,10 +11,20 @@ import (
 	"time"
 )
 
+const (
+	padding  = 2
+	maxWidth = 80
+)
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
-
+	case tea.WindowSizeMsg:
+		m.progress.Width = msg.Width - padding*2 - 4
+		if m.progress.Width > maxWidth {
+			m.progress.Width = maxWidth
+		}
+		return m, nil
 	case addMultipleMsg:
 		population := m.table.SelectedRow()[3]
 		population = strings.Replace(population, ",", "", -1)
@@ -36,20 +46,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.showProgress = false
 		}
 		return m, cmd
-
 	case popMsg:
 		s := string(msg)
 		m.table.SelectedRow()[3] = s
 		m.table.UpdateViewport() // this is how we update after
+
+	// menu handlers
+	case countImagesWithCaptions:
+		// set the first row's first column to the new count
+		m.menu[0].Rows()[0][0] = string(msg)
+		m.menu[0].UpdateViewport()
+	case countCaptionDirectoryMatchImageDirectory:
+	case countImagesWithoutCaptions:
+	case countPending:
+	case countFiles:
+	case countImages:
+	case countOverwrites:
+	case countCaptionsToMerge:
+	case countTotalCaptions:
+	case countImagesWithCaptionsNextToThem:
+	case offSet:
+	case moveString:
 
 	// FrameMsg is sent when the progress bar wants to animate itself
 	case progress.FrameMsg:
 		progressModel, cmd := m.progress.Update(msg)
 		m.progress = progressModel.(progress.Model)
 		return m, cmd
-
-	//case resetMsg:
-	//	m.progress = progress.New(progress.WithDefaultGradient())
 
 	case percentMsg:
 		p := float64(msg)
@@ -96,6 +119,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
+			if m.menu[0].Cursor() == 0 {
+				return m, addCountImages(m.menu[0].Rows()[0][0])
+			}
 			if m.table.Cursor() == 1 {
 				m.table.Blur()
 				m.showTextInput = true
@@ -114,8 +140,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, runCmd
 		}
 	}
+
+	// update tables
+	var batch []tea.Cmd
 	m.table, cmd = m.table.Update(msg)
-	return m, cmd
+	for i, _ := range m.menu {
+		m.menu[i], cmd = m.menu[i].Update(msg)
+		batch = append(batch, cmd)
+	}
+	return m, tea.Batch(append(batch, cmd)...)
 }
 
 type popMsg string
@@ -125,15 +158,15 @@ type addMultipleMsg struct {
 	total   int
 }
 
-type countImagesWithCaptions int
-type countCaptionDirectoryMatchImageDirectory int
-type countImagesWithoutCaptions int
-type countPending int
-type countFiles int
-type countImages int
-type countOverwrites int
-type countCaptionsToMerge int
-type countTotalCaptions int
-type countImagesWithCaptionsNextToThem int
-type offSet int
+type countImagesWithCaptions string
+type countCaptionDirectoryMatchImageDirectory string
+type countImagesWithoutCaptions string
+type countPending string
+type countFiles string
+type countImages string
+type countOverwrites string
+type countCaptionsToMerge string
+type countTotalCaptions string
+type countImagesWithCaptionsNextToThem string
+type offSet string
 type moveString string

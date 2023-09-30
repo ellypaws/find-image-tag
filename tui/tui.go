@@ -19,14 +19,25 @@ func addMultiple() tea.Cmd {
 	}
 }
 
+func addOne(num string) string {
+	num = strings.Replace(num, ",", "", -1)
+	newNum, _ := strconv.Atoi(num)
+	newNum++
+	newNumString := formatWithComma(newNum)
+	return newNumString
+}
+
 func addPopulation(population string) tea.Cmd {
-	// remove comma from string
-	population = strings.Replace(population, ",", "", -1)
-	newPop, _ := strconv.Atoi(population)
-	newPop += 1
-	newPopString := formatWithComma(newPop)
+	newPopString := addOne(population)
 	return func() tea.Msg {
 		return popMsg(newPopString)
+	}
+}
+
+func addCountImages(count string) tea.Cmd {
+	newCountString := addOne(count)
+	return func() tea.Msg {
+		return countImagesWithCaptions(newCountString)
 	}
 }
 

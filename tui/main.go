@@ -36,8 +36,8 @@ func Main() {
 	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(7),
+		table.WithFocused(false),
+		table.WithHeight(12),
 	)
 
 	s := table.DefaultStyles()
@@ -53,15 +53,17 @@ func Main() {
 	t.SetStyles(s)
 
 	menu := NewMenu()
-	for _, m := range menu {
-		m.SetStyles(s)
-	}
 
 	m := model{
 		table:     t,
 		progress:  progress.New(progress.WithDefaultGradient()),
 		textInput: autocomplete.Init(),
 		menu:      menu,
+	}
+
+	// set styles for each menu
+	for i, _ := range m.menu {
+		m.menu[i].SetStyles(s)
 	}
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {

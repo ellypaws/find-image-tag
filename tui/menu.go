@@ -3,7 +3,7 @@ package tui
 import "github.com/charmbracelet/bubbles/table"
 
 func NewMenu() []table.Model {
-	menu := []table.Model{}
+	var menu []table.Model
 	menu = append(menu, statsTable())
 	menu = append(menu, captionsTable())
 	menu = append(menu, actionsTable())
@@ -26,7 +26,7 @@ func statsTable() table.Model {
 	return table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
-		table.WithFocused(false),
+		table.WithFocused(true),
 		table.WithHeight(7),
 	)
 }
