@@ -1,4 +1,4 @@
-package main
+package autocomplete
 
 import (
 	"fmt"
@@ -42,7 +42,27 @@ func initialModel() model {
 	return model{textInput: ti}
 }
 
-func getDirectories(path string) ([]string, error) {
+func Init() textinput.Model {
+	ti := textinput.New()
+
+	currentDir, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to get current working directory: %v", err)
+	}
+
+	ti.Prompt = ""
+	ti.Placeholder = currentDir + string(os.PathSeparator)
+	ti.Cursor.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
+	ti.Focus()
+	ti.CharLimit = 200
+	ti.Width = 50
+	ti.ShowSuggestions = true
+	ti.SetSuggestions([]string{currentDir}) // Set initial suggestions to the current directory
+
+	return ti
+}
+
+func GetDirectories(path string) ([]string, error) {
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
@@ -81,7 +101,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		basePath := filepath.Dir(path) // Gets the path up to the last backslash
 
 		if _, err := os.Stat(basePath); err == nil {
-			directories, err := getDirectories(basePath)
+			directories, err := GetDirectories(basePath)
 			if err == nil {
 				for i, dir := range directories {
 					directories[i] = filepath.Join(basePath, dir)

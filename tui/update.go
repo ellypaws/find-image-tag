@@ -1,8 +1,11 @@
 package tui
 
 import (
+	"find-image-tag/tui/autocomplete"
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbletea"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -64,17 +67,53 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
+			if m.showTextInput {
+				m.showTextInput = false
+				m.table.Focus()
+				tea.Println(m.textInput.Value())
+				return m, nil
+			}
+			if m.table.Cursor() == 1 {
+				m.table.Blur()
+				m.showTextInput = true
+			}
 			return m, tea.Batch(
 				//tea.Printf("Let's go to %s!", m.table.SelectedRow()[1]),
 				addPopulation(m.table.SelectedRow()[3]),
 			)
 		case "a":
+			if m.showTextInput {
+				return m, nil
+			}
 			m.showProgress = true
 			m.progress = progress.New(progress.WithDefaultGradient())
 			runCmd := tea.Batch(addMultiple())
 			return m, runCmd
 		}
 
+		// Directory handler
+		if m.showTextInput {
+			path := m.textInput.Value()
+			if path == "" {
+				path = m.textInput.Placeholder
+			}
+
+			basePath := filepath.Dir(path) // Gets the path up to the last backslash
+
+			if _, err := os.Stat(basePath); err == nil {
+				directories, err := autocomplete.GetDirectories(basePath)
+				if err == nil {
+					for i, dir := range directories {
+						directories[i] = filepath.Join(basePath, dir)
+					}
+					m.textInput.SetSuggestions(directories)
+				}
+			} else {
+				m.textInput.SetSuggestions(nil)
+			}
+			m.textInput, cmd = m.textInput.Update(msg)
+			return m, cmd
+		}
 	}
 	m.table, cmd = m.table.Update(msg)
 	return m, cmd

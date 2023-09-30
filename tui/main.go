@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"find-image-tag/tui/autocomplete"
 	"fmt"
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/table"
@@ -9,6 +10,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"os"
 )
+
+type model struct {
+	table         table.Model
+	progress      progress.Model
+	showProgress  bool
+	textInput     textinput.Model
+	showTextInput bool
+}
 
 func Main() {
 	columns := []table.Column{
@@ -42,17 +51,14 @@ func Main() {
 		Bold(false)
 	t.SetStyles(s)
 
-	m := model{table: t, progress: progress.New(progress.WithDefaultGradient())}
+	m := model{
+		table:     t,
+		progress:  progress.New(progress.WithDefaultGradient()),
+		textInput: autocomplete.Init(),
+	}
+
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
-}
-
-type model struct {
-	table            table.Model
-	progress         progress.Model
-	showProgress     bool
-	autocomplete     textinput.Model
-	showAutocomplete bool
 }

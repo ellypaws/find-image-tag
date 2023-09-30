@@ -5,5 +5,8 @@ func (m model) View() string {
 	if m.showProgress {
 		view += m.progress.View() + "\n"
 	}
+	if m.showTextInput {
+		view += m.textInput.View() + "\n"
+	}
 	return baseStyle.Render(view) + "\n"
 }
