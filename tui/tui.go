@@ -3,6 +3,8 @@ package tui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -13,9 +15,52 @@ var baseStyle = lipgloss.NewStyle().
 
 const desiredSteps = 200
 
-func addMultiple() tea.Cmd {
+func addMultiple(steps int) tea.Cmd {
+	if steps == 0 {
+		steps = desiredSteps
+	}
 	return func() tea.Msg {
-		return addMultipleMsg{current: 1, total: desiredSteps} // Start with the first step and desired total steps
+		return addMultipleMsg{current: 1, total: steps} // Start with the first step and desired total steps
+	}
+}
+
+func directoryParse(filter int, directory string) tea.Cmd {
+	// get all folders in directory (just one level deep)
+	var dirEntries []os.DirEntry
+	entries, err := os.ReadDir(directory)
+	if err != nil {
+		return nil
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			dirEntries = append(dirEntries, entry)
+		}
+	}
+
+	// count the number of directories
+	numDirs := len(dirEntries)
+	dirSliceFullPath := make([]string, numDirs)
+	for i, dirEntry := range dirEntries {
+		dirSliceFullPath[i] = filepath.Join(directory, dirEntry.Name())
+	}
+
+	msg := func() tea.Msg {
+		return progressMsg{current: 1, total: numDirs, dirs: dirSliceFullPath}
+	}
+
+	return msg
+
+}
+
+func processDirectory(m *model, filter int, directory string, progress progressMsg) tea.Cmd {
+	m.DataSet.WriteFiles(filter, directory)
+	return func() tea.Msg {
+		return progressMsg{
+			current: progress.current + 1,
+			total:   progress.total,
+			dirs:    progress.dirs,
+		}
 	}
 }
 

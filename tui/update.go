@@ -33,6 +33,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.progress.Width = maxWidth
 		}
 		return m, nil
+	case progressMsg:
+		if msg.current%10 == 0 { // Only update progress for multiples of 5
+			currentProgress := float64(msg.current) / float64(msg.total)
+			cmd = m.progress.SetPercent(currentProgress)
+		}
+
+		if msg.current < msg.total {
+			processDirectory(&m, AddBoth, msg.dirs[msg.current-1], msg)
+			return m, tea.Batch(tea.Tick(time.Millisecond, func(t time.Time) tea.Msg {
+				return progressMsg{current: msg.current + 1, total: msg.total, dirs: msg.dirs}
+			}), cmd)
+		} else {
+			m.showProgress = false
+		}
+		return m, cmd
 	case addMultipleMsg:
 		var numString string
 		var modelToUpdate *table.Model
@@ -85,6 +100,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.showTextInput = true
 	case []Menu:
 		m.menus = msg
+		for menuID, _ := range m.menus {
+			m.menus[menuID].Menu.UpdateViewport()
+		}
 	case updateNum: // menu handlers
 		m.menus[msg.tableID].Menu.Rows()[msg.row][msg.column] = msg.num
 		m.menus[msg.tableID].Menu.UpdateViewport()
@@ -164,7 +182,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.showProgress = true
 			m.progress = progress.New(progress.WithDefaultGradient())
-			runCmd := tea.Batch(addMultiple())
+			runCmd := tea.Batch(addMultiple(desiredSteps))
 			return m, runCmd
 		case "u":
 			return m, Refresh()
@@ -201,7 +219,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.menus[menuID].Menu, cmd = currentMenu.Menu.Update(msg)
 		batch = append(batch, cmd)
 	}
-
 	return m, tea.Batch(append(batch, cmd)...)
 }
 
@@ -223,7 +240,35 @@ type addMultipleMsg struct {
 	current int
 	total   int
 }
+type progressMsg struct {
+	current int
+	total   int
+	dirs    []string
+}
 type msgToPrint string
 type startCount bool
 
 type directoryPrompt int
+
+const (
+	CheckExist = iota
+	Print
+	Reset
+	WriteJSON
+	Append
+	CheckMissing
+	Quit
+)
+
+const (
+	MoveCaptions = iota
+	Hardlink
+	Merge
+	AddTags
+	Underscores
+)
+
+type Actions struct {
+	Menu int
+	Do   int
+}

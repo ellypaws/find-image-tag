@@ -52,9 +52,16 @@ func (m model) statsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 		func(m model, c tea.Cmd) tea.Cmd {
 			return Refresh()
 		},
-		nil,
-		nil,
-		nil,
+		func(m model, c tea.Cmd) tea.Cmd {
+			return Refresh()
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return Refresh()
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return Refresh()
+
+		},
 	}
 
 	return table.New(
@@ -107,13 +114,27 @@ func (m model) captionsTable() (tbl table.Model, keys Keys, enter EnterActions) 
 		func(m model, c tea.Cmd) tea.Cmd {
 			return func() tea.Msg { return directoryPrompt(AddImage) }
 		},
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{1, CheckExist} }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{1, Print} }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{1, Reset} }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{1, WriteJSON} }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{1, Append} }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{1, CheckMissing} }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{1, Quit} }
+		},
 	}
 
 	return table.New(
@@ -149,11 +170,18 @@ func (m model) actionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 	}
 
 	function := EnterActions{
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{2, MoveCaptions} }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{2, Hardlink} }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{2, Merge} }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return Actions{2, AddTags} }
+		},
 	}
 
 	return table.New(
