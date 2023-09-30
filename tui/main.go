@@ -18,6 +18,7 @@ type model struct {
 	showProgress  bool
 	textInput     textinput.Model
 	showTextInput bool
+	activeMenu    int
 }
 
 func Main() {
@@ -40,30 +41,44 @@ func Main() {
 		table.WithHeight(12),
 	)
 
-	s := table.DefaultStyles()
-	s.Header = s.Header.
+	focused := table.DefaultStyles()
+	focused.Header = focused.Header.
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("240")).
 		BorderBottom(true).
 		Bold(false)
-	s.Selected = s.Selected.
+	focused.Selected = focused.Selected.
 		Foreground(lipgloss.Color("229")).
 		Background(lipgloss.Color("57")).
 		Bold(false)
-	t.SetStyles(s)
+	t.SetStyles(focused)
+
+	unfocused := table.DefaultStyles()
+	unfocused.Header = unfocused.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	unfocused.Selected = unfocused.Selected.
+		Foreground(lipgloss.Color("#bbbbbb"))
 
 	menu := NewMenu()
 
 	m := model{
-		table:     t,
-		progress:  progress.New(progress.WithDefaultGradient()),
-		textInput: autocomplete.Init(),
-		menu:      menu,
+		table:      t,
+		progress:   progress.New(progress.WithDefaultGradient()),
+		textInput:  autocomplete.Init(),
+		menu:       menu,
+		activeMenu: 0,
 	}
 
 	// set styles for each menu
 	for i, _ := range m.menu {
-		m.menu[i].SetStyles(s)
+		if i == m.activeMenu {
+			m.menu[i].SetStyles(focused)
+		} else {
+			m.menu[i].SetStyles(unfocused)
+		}
 	}
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
