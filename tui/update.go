@@ -78,21 +78,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		s := string(msg)
 		m.table.SelectedRow()[3] = s
 		m.table.UpdateViewport() // this is how we update after
-
 	case msgToPrint:
 		return m, tea.Printf(string(msg))
 	case directoryPrompt:
 		i = msg
 		m.showTextInput = true
-
 	case []Menu:
 		m.menus = msg
-
-	// menu handlers
-	case updateNum:
+	case updateNum: // menu handlers
 		m.menus[msg.tableID].Menu.Rows()[msg.row][msg.column] = msg.num
 		m.menus[msg.tableID].Menu.UpdateViewport()
-
 	case startCount:
 		if msg {
 			for menuID, currentMenu := range m.menus {
@@ -107,21 +102,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-
-	// FrameMsg is sent when the progress bar wants to animate itself
-	case progress.FrameMsg:
+	case progress.FrameMsg: // FrameMsg is sent when the progress bar wants to animate itself
 		progressModel, cmd := m.progress.Update(msg)
 		m.progress = progressModel.(progress.Model)
 		return m, cmd
-
 	case percentMsg:
 		p := float64(msg)
 		cmd = m.progress.SetPercent(p)
 		return m, cmd
-
 	case tea.KeyMsg:
-		// Directory handler
-		if m.showTextInput {
+		if m.showTextInput { // Directory handler
 			if msg.Type == tea.KeyEnter {
 				m.showTextInput = false
 				m.menus[0].Menu.Focus()
@@ -149,7 +139,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textInput, cmd = m.textInput.Update(msg)
 			return m, cmd
 		}
-
 		switch msg.String() {
 		case "esc":
 			if m.table.Focused() {
@@ -160,7 +149,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			// on enter handler
 			for _, currentMenu := range m.menus {
 				if currentMenu.Menu.Focused() {
 					if ok := currentMenu.EnterFunc[currentMenu.Menu.Cursor()]; ok != nil {
@@ -169,16 +157,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
-
-			if m.table.Focused() && m.table.Cursor() == 1 {
-				m.table.Blur()
-				m.showTextInput = true
-			}
-
-			return m, tea.Batch(
-				//tea.Printf("Let's go to %s!", m.table.SelectedRow()[1]),
-				addPopulation(m.table.SelectedRow()[3]),
-			)
+			return m, Refresh()
 		case "a":
 			if m.showTextInput {
 				return m, nil
@@ -191,8 +170,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, Refresh()
 		}
 
-		for menuID, currentMenu := range m.menus {
-			// Based on focus state of tables, update the focused table
+		for menuID, currentMenu := range m.menus { // up/down handlers
 			if currentMenu.Menu.Focused() {
 				//m.menu[i], cmd = m.menu[i].Update(msg)
 				if menuID < len(m.menus)-1 && msg.String() == "down" && currentMenu.Menu.Cursor() == len(currentMenu.Menu.Rows())-1 {
