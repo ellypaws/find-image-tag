@@ -151,10 +151,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for i, _ := range m.menu {
 			// Based on focus state of tables, update the focused table
 			if m.menu[i].Focused() {
-				m.menu[i], cmd = m.menu[i].Update(msg)
+				//m.menu[i], cmd = m.menu[i].Update(msg)
 				if i < len(m.menu)-1 && msg.String() == "down" && m.menu[i].Cursor() == len(m.menu[i].Rows())-1 {
 					m.menu[i].Blur()
 					m.menu[i+1].Focus()
+					m.menu[i+1].SetCursor(0)
 					m.menu[i+1].SetStyles(focused)
 					return m, nil
 				}
