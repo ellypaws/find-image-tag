@@ -9,7 +9,7 @@ type CountFunction func(m model, tableID int, row int, column int) tea.Cmd
 type CountRow []CountFunction
 type Keys []CountRow
 
-type EnterFunction func() tea.Cmd
+type EnterFunction func(m model, c tea.Cmd) tea.Cmd
 type EnterActions []EnterFunction
 
 // {CountFunction, CountFunction, CountFunction} --> countRow  ||
@@ -49,7 +49,9 @@ func (m model) statsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 	}
 
 	function := EnterActions{
-		func() tea.Cmd { return nil },
+		func(m model, c tea.Cmd) tea.Cmd {
+			return Refresh()
+		},
 		nil,
 		nil,
 		nil,
@@ -96,9 +98,15 @@ func (m model) captionsTable() (tbl table.Model, keys Keys, enter EnterActions) 
 	}
 
 	function := EnterActions{
-		func() tea.Cmd { return nil },
-		nil,
-		nil,
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return directoryPrompt(AddBoth) }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return directoryPrompt(AddCaption) }
+		},
+		func(m model, c tea.Cmd) tea.Cmd {
+			return func() tea.Msg { return directoryPrompt(AddImage) }
+		},
 		nil,
 		nil,
 		nil,
@@ -141,7 +149,7 @@ func (m model) actionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 	}
 
 	function := EnterActions{
-		func() tea.Cmd { return nil },
+		nil,
 		nil,
 		nil,
 		nil,

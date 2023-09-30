@@ -25,6 +25,7 @@ const (
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	var i directoryPrompt
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.progress.Width = msg.Width - padding*2 - 4
@@ -80,6 +81,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case msgToPrint:
 		return m, tea.Printf(string(msg))
+	case directoryPrompt:
+		i = msg
+		m.showTextInput = true
 
 	case []Menu:
 		m.menus = msg
@@ -121,8 +125,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.Type == tea.KeyEnter {
 				m.showTextInput = false
 				m.menus[0].Menu.Focus()
-				m.DataSet.WriteFiles(AddBoth, m.textInput.Value())
-
+				m.DataSet.WriteFiles(int(i), m.textInput.Value())
 				return m, Refresh()
 			}
 			path := m.textInput.Value()
@@ -158,13 +161,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter":
 			// on enter handler
-			for menuID, currentMenu := range m.menus {
+			for _, currentMenu := range m.menus {
 				if currentMenu.Menu.Focused() {
 					if ok := currentMenu.EnterFunc[currentMenu.Menu.Cursor()]; ok != nil {
-						m.menus[menuID].Menu.Blur()
-						m.showTextInput = true
-						//m.menus[menuID].Menu.UpdateViewport()
-						return m, ok()
+						cmd = ok(m, cmd)
+						return m, cmd
 					}
 				}
 			}
@@ -247,4 +248,4 @@ type addMultipleMsg struct {
 type msgToPrint string
 type startCount bool
 
-type ShowMenu int
+type directoryPrompt int
