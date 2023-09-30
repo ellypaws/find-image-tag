@@ -123,7 +123,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.menus[0].Menu.Focus()
 				m.DataSet.WriteFiles(AddBoth, m.textInput.Value())
 
-				return m, refresh()
+				return m, Refresh()
 			}
 			path := m.textInput.Value()
 			if path == "" {
@@ -187,7 +187,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			runCmd := tea.Batch(addMultiple())
 			return m, runCmd
 		case "u":
-			return m, refresh()
+			return m, Refresh()
 		}
 
 		for menuID, currentMenu := range m.menus {
@@ -226,7 +226,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(append(batch, cmd)...)
 }
 
-func refresh() tea.Cmd {
+func Refresh() tea.Cmd {
 	return func() tea.Msg {
 		return startCount(true)
 	}
@@ -246,3 +246,5 @@ type addMultipleMsg struct {
 }
 type msgToPrint string
 type startCount bool
+
+type ShowMenu int
