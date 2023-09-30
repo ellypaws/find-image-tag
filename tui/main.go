@@ -13,6 +13,7 @@ import (
 
 type model struct {
 	table         table.Model
+	menu          []table.Model
 	progress      progress.Model
 	showProgress  bool
 	textInput     textinput.Model
@@ -51,10 +52,16 @@ func Main() {
 		Bold(false)
 	t.SetStyles(s)
 
+	menu := NewMenu()
+	for _, m := range menu {
+		m.SetStyles(s)
+	}
+
 	m := model{
 		table:     t,
 		progress:  progress.New(progress.WithDefaultGradient()),
 		textInput: autocomplete.Init(),
+		menu:      menu,
 	}
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {

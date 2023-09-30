@@ -124,3 +124,16 @@ type addMultipleMsg struct {
 	current int
 	total   int
 }
+
+type countImagesWithCaptions int
+type countCaptionDirectoryMatchImageDirectory int
+type countImagesWithoutCaptions int
+type countPending int
+type countFiles int
+type countImages int
+type countOverwrites int
+type countCaptionsToMerge int
+type countTotalCaptions int
+type countImagesWithCaptionsNextToThem int
+type offSet int
+type moveString string
