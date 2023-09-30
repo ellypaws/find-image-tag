@@ -26,18 +26,6 @@ func (m model) NewMenu() []Menu {
 		{captions, captionsKeys, captionsEnter},
 		{actions, actionsKeys, actionsEnter},
 	}
-
-	//menu := []table.Model{
-	//	stats,
-	//	captions,
-	//	actions,
-	//}
-	//
-	//keys := []Keys{
-	//	statsKeys,
-	//	captionsKeys,
-	//	actionsKeys,
-	//}
 }
 
 func (m model) statsTable() (tbl table.Model, keys Keys, enter EnterActions) {
@@ -94,14 +82,6 @@ func (m model) captionsTable() (tbl table.Model, keys Keys, enter EnterActions) 
 		{" ", "Quit"},
 	}
 
-	//values := CountRow{
-	//	tempM.CountFiles,
-	//	tempM.CountTotalCaptions,
-	//	tempM.CountImages,
-	//	tempM.CountImages,
-	//	tempM.nul,
-	//}
-
 	values := Keys{
 		{m.CountFiles},
 		{m.CountTotalCaptions},
@@ -151,11 +131,6 @@ func (m model) actionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 		{" ", " ", "0", "Append new tags to captions (dir)"},
 		{" ", " ", " ", "Replace spaces with [_]"},
 	}
-
-	//values := CountRow{
-	//	tempM.CountFiles,
-	//	tempM.CountImages,
-	//}
 
 	values := Keys{
 		{m.CountImagesWithCaptionsNextToThem, m.CountOverwrites, m.CountImagesWithCaptions},

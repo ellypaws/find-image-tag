@@ -31,15 +31,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var modelToUpdate *table.Model
 		var toUpdate *string
 
-		//// get the cell's address
-		//if m.menu[m.activeMenu].Focused() {
-		//	modelToUpdate = &m.menu[m.activeMenu]
-		//	toUpdate = &modelToUpdate.SelectedRow()[0]
-		//} else if m.table.Focused() {
-		//	modelToUpdate = &m.table
-		//	toUpdate = &modelToUpdate.SelectedRow()[3]
-		//}
-
 		// get the cell's address
 		for menuID, currentMenu := range m.menus {
 			if currentMenu.Menu.Focused() {
@@ -61,8 +52,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// change the desired cell using the pointer
 		*toUpdate = newNumString
-		//m.menu[m.activeMenu].SelectedRow()[0] = newNumString
-		//m.menu[m.activeMenu].UpdateViewport() // this is how we update after
 		modelToUpdate.UpdateViewport()
 
 		if msg.current%10 == 0 { // Only update progress for multiples of 5
@@ -85,26 +74,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// menu handlers
 	case updateNum:
-		//m.menu[msg.tableID].Rows()[msg.row][msg.column] = msg.num
-		//m.menu[msg.tableID].UpdateViewport()
-
 		m.menus[msg.tableID].Menu.Rows()[msg.row][msg.column] = msg.num
 		m.menus[msg.tableID].Menu.UpdateViewport()
-	//case countImagesWithCaptions:
-	//	// set the first row's first column to the new count
-	//	m.menu[0].Rows()[0][0] = string(msg)
-	//	m.menu[0].UpdateViewport()
-	//case countCaptionDirectoryMatchImageDirectory:
-	//case countImagesWithoutCaptions:
-	//case countPending:
-	//case countFiles:
-	//case countImages:
-	//case countOverwrites:
-	//case countCaptionsToMerge:
-	//case countTotalCaptions:
-	//case countImagesWithCaptionsNextToThem:
-	//case offSet:
-	//case moveString:
 
 	// FrameMsg is sent when the progress bar wants to animate itself
 	case progress.FrameMsg:
@@ -157,17 +128,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-
-			// chosen menu handler
-			//if m.menu[0].Focused() {
-			//	return m, addCountImages(m.menu[0].Rows()[0][0], m.menu[0].Cursor())
-			//}
-
-			//if m.menu[1].Cursor() == 0 {
-			//	m.showTextInput = true
-			//	return m, nil
-			//}
-
 			// on enter handler
 			for _, currentMenu := range m.menus {
 				if currentMenu.Menu.Focused() {
@@ -196,16 +156,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			runCmd := tea.Batch(addMultiple())
 			return m, runCmd
 		case "u":
-			//for menuID := range m.menu {
-			//	for row := range m.menu[menuID].Rows() {
-			//		cmdFunc := m.keys[menuID][row]
-			//		if cmdFunc != nil {
-			//			cmd := cmdFunc(menuID, row, 0) // assuming you have `tableID` and `column` variables in your context
-			//			return m, cmd
-			//		}
-			//	}
-			//}
-
 			for menuID, currentMenu := range m.menus {
 				for row := range currentMenu.Menu.Rows() {
 					for column := range currentMenu.Menu.Rows()[row] {
@@ -218,28 +168,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-
-		// menu movement handler
-		//for i, _ := range m.menu {
-		//	// Based on focus state of tables, update the focused table
-		//	if m.menu[i].Focused() {
-		//		//m.menu[i], cmd = m.menu[i].Update(msg)
-		//		if i < len(m.menu)-1 && msg.String() == "down" && m.menu[i].Cursor() == len(m.menu[i].Rows())-1 {
-		//			m.menu[i].Blur()
-		//			m.menu[i+1].Focus()
-		//			m.menu[i+1].SetCursor(0)
-		//			m.menu[i+1].SetStyles(focused)
-		//			m.activeMenu = i + 1
-		//			return m, nil
-		//		}
-		//		if i > 0 && msg.String() == "up" && m.menu[i].Cursor() == 0 {
-		//			m.menu[i].Blur()
-		//			m.menu[i-1].Focus()
-		//			m.activeMenu = i - 1
-		//			return m, nil
-		//		}
-		//	}
-		//}
 
 		for menuID, currentMenu := range m.menus {
 			// Based on focus state of tables, update the focused table
@@ -268,14 +196,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// update tables
 	var batch []tea.Cmd
 	m.table, cmd = m.table.Update(msg)
-
-	//// Update all other tables
-	//for i, _ := range m.menu {
-	//	if m.menu[i].Focused() {
-	//		m.menu[i], cmd = m.menu[i].Update(msg)
-	//		batch = append(batch, cmd)
-	//	}
-	//}
 
 	for menuID, currentMenu := range m.menus {
 		m.menus[menuID].Menu, cmd = currentMenu.Menu.Update(msg)
