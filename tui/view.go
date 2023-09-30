@@ -3,14 +3,16 @@ package tui
 func (m model) View() string {
 	var view string
 	view = m.menu[0].View() + "\n"
+	view += m.menu[1].View() + "\n"
+	//view += m.menu[2].View() + "\n"
 	//for _, menu := range m.menu {
 	//	table := menu.View() + "\n"
 	//	view += baseStyle.Render(table) + "\n"
 	//}
 	//view += m.table.View() + "\n"
-	//if m.showProgress {
-	//	view += m.progress.View() + "\n"
-	//}
+	if m.showProgress {
+		view += m.progress.View() + "\n"
+	}
 
 	view = baseStyle.Render(view) + "\n"
 

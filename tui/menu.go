@@ -13,7 +13,7 @@ func NewMenu() []table.Model {
 func statsTable() table.Model {
 	columns := []table.Column{
 		{Title: "#", Width: 4},
-		{Title: "", Width: 20},
+		{Title: "Stats", Width: 20},
 	}
 
 	rows := []table.Row{
@@ -34,7 +34,7 @@ func statsTable() table.Model {
 func captionsTable() table.Model {
 	columns := []table.Column{
 		{Title: "#", Width: 4},
-		{Title: "", Width: 20},
+		{Title: "Captions", Width: 20},
 	}
 
 	rows := []table.Row{
@@ -63,7 +63,7 @@ func actionsTable() table.Model {
 		{Title: "Current", Width: 4},
 		{Title: "New", Width: 4},
 		{Title: "Total", Width: 4},
-		{Title: "", Width: 20},
+		{Title: "Actions", Width: 20},
 	}
 
 	rows := []table.Row{
