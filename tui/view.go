@@ -1,7 +1,22 @@
 package tui
 
+import (
+	"github.com/charmbracelet/bubbles/table"
+)
+
+var focused = table.DefaultStyles()
+var unfocused = table.DefaultStyles()
+
 func (m model) View() string {
 	var view string
+	for i, _ := range m.menu {
+		// set the styles depending if they're focused
+		if i == m.activeMenu {
+			m.menu[i].SetStyles(focused)
+		} else {
+			m.menu[i].SetStyles(unfocused)
+		}
+	}
 	view = m.menu[0].View() + "\n"
 	view += m.menu[1].View() + "\n"
 	//view += m.menu[2].View() + "\n"

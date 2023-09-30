@@ -41,7 +41,7 @@ func Main() {
 		table.WithHeight(12),
 	)
 
-	focused := table.DefaultStyles()
+	focused = table.DefaultStyles()
 	focused.Header = focused.Header.
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("240")).
@@ -53,7 +53,7 @@ func Main() {
 		Bold(false)
 	t.SetStyles(focused)
 
-	unfocused := table.DefaultStyles()
+	unfocused = table.DefaultStyles()
 	unfocused.Header = unfocused.Header.
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("240")).

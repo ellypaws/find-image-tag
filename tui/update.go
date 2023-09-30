@@ -119,9 +119,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
+
+			// chosen menu handler
 			if m.menu[0].Cursor() == 0 {
 				return m, addCountImages(m.menu[0].Rows()[0][0])
 			}
+			if m.menu[1].Cursor() == 0 {
+				m.showTextInput = true
+				return m, nil
+			}
+
 			if m.table.Cursor() == 1 {
 				m.table.Blur()
 				m.showTextInput = true
@@ -139,14 +146,35 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			runCmd := tea.Batch(addMultiple())
 			return m, runCmd
 		}
+
+		// menu movement handler
+		for i, _ := range m.menu {
+			// Based on focus state of tables, update the focused table
+			if m.menu[i].Focused() {
+				m.menu[i], cmd = m.menu[i].Update(msg)
+				if i < len(m.menu)-1 && msg.String() == "down" && m.menu[i].Cursor() == len(m.menu[i].Rows())-1 {
+					m.menu[i].Blur()
+					m.menu[i+1].Focus()
+					m.menu[i+1].SetStyles(focused)
+					return m, nil
+				}
+				if i > 0 && msg.String() == "up" && m.menu[i].Cursor() == 0 {
+					m.menu[i].Blur()
+					m.menu[i-1].Focus()
+					return m, nil
+				}
+			}
+		}
 	}
 
 	// update tables
 	var batch []tea.Cmd
 	m.table, cmd = m.table.Update(msg)
 	for i, _ := range m.menu {
-		m.menu[i], cmd = m.menu[i].Update(msg)
-		batch = append(batch, cmd)
+		if m.menu[i].Focused() {
+			m.menu[i], cmd = m.menu[i].Update(msg)
+			batch = append(batch, cmd)
+		}
 	}
 	return m, tea.Batch(append(batch, cmd)...)
 }
