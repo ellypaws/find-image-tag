@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"find-image-tag/entities"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -17,45 +18,80 @@ type countImagesWithCaptionsNextToThem string
 type offSet string
 type moveString string
 
-func (m model) CountFiles() tea.Cmd {
+func (m model) nul(tableID int, row int, column int) tea.Cmd {
+	return func() tea.Msg {
+		return updateNum{tableID: tableID, row: row, column: column, num: ""}
+	}
+}
+
+func (m model) CountFiles(tableID int, row int, column int) tea.Cmd {
 	newCount := formatWithComma(m.DataSet.CountFiles())
 	return func() tea.Msg {
-		return countFiles(newCount)
+		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
 	}
 }
 
-func (m model) CountPending() tea.Cmd {
+func (m model) CountPending(tableID int, row int, column int) tea.Cmd {
 	newCount := formatWithComma(m.DataSet.CountPending())
 	return func() tea.Msg {
-		return countPending(newCount)
+		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
 	}
 }
 
-func (m model) CountImages() tea.Cmd {
+func (m model) CountImages(tableID int, row int, column int) tea.Cmd {
 	newCount := formatWithComma(m.DataSet.CountImages())
 	return func() tea.Msg {
-		return countImages(newCount)
+		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
 	}
 }
 
-func (m model) CountImagesWithCaptions() tea.Cmd {
+func (m model) CountImagesWithCaptions(tableID int, row int, column int) tea.Cmd {
+	m.DataSet = entities.InitDataSet()
 	newCount := formatWithComma(m.DataSet.CountImagesWithCaptions())
 	return func() tea.Msg {
-		return countImagesWithCaptions(newCount)
+		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
 	}
 }
 
-func (m model) CountImagesWithCaptionsNextToThem() tea.Cmd {
+func (m model) CountImagesWithCaptionsNextToThem(tableID int, row int, column int) tea.Cmd {
 	newCount := formatWithComma(m.DataSet.CountImagesWithCaptionsNextToThem())
 	return func() tea.Msg {
-		return countImagesWithCaptionsNextToThem(newCount)
+		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
 	}
 }
 
-func (m model) CountOverwrites() tea.Cmd {
+func (m model) CountOverwrites(tableID int, row int, column int) tea.Cmd {
 	newCount := formatWithComma(m.DataSet.CountOverwrites(m.overwrite))
 	return func() tea.Msg {
-		return countOverwrites(newCount)
+		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
+	}
+}
+
+func (m model) CountCaptionsToMerge(tableID int, row int, column int) tea.Cmd {
+	newCount := formatWithComma(m.DataSet.CountCaptionsToMerge())
+	return func() tea.Msg {
+		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
+	}
+}
+
+func (m model) CountImagesWithoutCaptions(tableID int, row int, column int) tea.Cmd {
+	newCount := formatWithComma(m.DataSet.CountImagesWithoutCaptions())
+	return func() tea.Msg {
+		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
+	}
+}
+
+func (m model) CountCaptionDirectoryMatchImageDirectory(tableID int, row int, column int) tea.Cmd {
+	newCount := formatWithComma(m.DataSet.CountCaptionDirectoryMatchImageDirectory())
+	return func() tea.Msg {
+		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
+	}
+}
+
+func (m model) CountTotalCaptions(tableID int, row int, column int) tea.Cmd {
+	newCount := formatWithComma(m.DataSet.CountPending() + m.DataSet.CountImagesWithCaptions())
+	return func() tea.Msg {
+		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
 	}
 }
 

@@ -15,14 +15,18 @@ import (
 type model struct {
 	DataSet       *entities.DataSet
 	table         table.Model
-	menu          []table.Model
-	keys          [][]tea.Cmd
+	menus         []Menu
 	overwrite     bool
 	progress      progress.Model
 	showProgress  bool
 	textInput     textinput.Model
 	showTextInput bool
-	activeMenu    int
+}
+
+type Menu struct {
+	Menu       table.Model
+	UpdateFunc Keys
+	EnterFunc  EnterActions
 }
 
 func Main() {
@@ -66,22 +70,24 @@ func Main() {
 	unfocused.Selected = unfocused.Selected.
 		Foreground(lipgloss.Color("#bbbbbb"))
 
-	menu := NewMenu()
+	m := model{}
+	menu := m.NewMenu()
+	//m.Init()
 
-	m := model{
-		table:      t,
-		progress:   progress.New(progress.WithDefaultGradient()),
-		textInput:  autocomplete.Init(),
-		menu:       menu,
-		activeMenu: 0,
+	m = model{
+		table:     t,
+		progress:  progress.New(progress.WithDefaultGradient()),
+		textInput: autocomplete.Init(),
+		menus:     menu,
+		DataSet:   entities.InitDataSet(),
 	}
 
 	// set styles for each menu
-	for i, _ := range m.menu {
-		if i == m.activeMenu {
-			m.menu[i].SetStyles(focused)
+	for menuID, currentMenu := range m.menus {
+		if currentMenu.Menu.Focused() {
+			m.menus[menuID].Menu.SetStyles(focused)
 		} else {
-			m.menu[i].SetStyles(unfocused)
+			m.menus[menuID].Menu.SetStyles(unfocused)
 		}
 	}
 

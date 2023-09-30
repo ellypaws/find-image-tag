@@ -9,17 +9,17 @@ var unfocused = table.DefaultStyles()
 
 func (m model) View() string {
 	var view string
-	for i, _ := range m.menu {
-		// set the styles depending if they're focused
-		if m.menu[i].Focused() {
-			m.menu[i].SetStyles(focused)
+	// set styles for each menu
+	for menuID, currentMenu := range m.menus {
+		if currentMenu.Menu.Focused() {
+			m.menus[menuID].Menu.SetStyles(focused)
 		} else {
-			m.menu[i].SetStyles(unfocused)
+			m.menus[menuID].Menu.SetStyles(unfocused)
 		}
-		//view += m.menu[i].View() + "\n"
+		//view += m.menus[menuID].Menu.View()
 	}
-	view += m.menu[0].View() + "\n"
-	view += m.menu[1].View() + "\n"
+	view += m.menus[0].Menu.View() + "\n\n"
+	view += m.menus[1].Menu.View() + "\n\n"
 
 	// TODO: Fix height viewport
 	//view += m.menu[2].View() + "\n"

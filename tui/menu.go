@@ -1,16 +1,46 @@
 package tui
 
-import "github.com/charmbracelet/bubbles/table"
+import (
+	"github.com/charmbracelet/bubbles/table"
+	tea "github.com/charmbracelet/bubbletea"
+)
 
-func NewMenu() []table.Model {
-	var menu []table.Model
-	menu = append(menu, statsTable())
-	menu = append(menu, captionsTable())
-	menu = append(menu, actionsTable())
-	return menu
+type CountFunction func(tableID int, row int, column int) tea.Cmd
+type CountRow []CountFunction
+type Keys []CountRow
+
+type EnterFunction func() tea.Cmd
+type EnterActions []EnterFunction
+
+// {CountFunction, CountFunction, CountFunction} --> countRow  ||
+// {CountFunction, CountFunction, CountFunction} -- > countRow || --> keys
+// {CountFunction, CountFunction, CountFunction} -- > countRow ||
+
+func (m model) NewMenu() []Menu {
+	stats, statsKeys, statsEnter := m.statsTable()
+	captions, captionsKeys, captionsEnter := m.captionsTable()
+	actions, actionsKeys, actionsEnter := m.actionsTable()
+
+	return []Menu{
+		{stats, statsKeys, statsEnter},
+		{captions, captionsKeys, captionsEnter},
+		{actions, actionsKeys, actionsEnter},
+	}
+
+	//menu := []table.Model{
+	//	stats,
+	//	captions,
+	//	actions,
+	//}
+	//
+	//keys := []Keys{
+	//	statsKeys,
+	//	captionsKeys,
+	//	actionsKeys,
+	//}
 }
 
-func statsTable() table.Model {
+func (m model) statsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 	columns := []table.Column{
 		{Title: "#", Width: 6},
 		{Title: "Stats", Width: 50},
@@ -23,15 +53,29 @@ func statsTable() table.Model {
 		{"0", "Pending text files"},
 	}
 
+	values := Keys{
+		{m.CountImagesWithCaptions},
+		{m.CountCaptionDirectoryMatchImageDirectory},
+		{m.CountImagesWithoutCaptions},
+		{m.CountPending},
+	}
+
+	function := EnterActions{
+		func() tea.Cmd { return nil },
+		nil,
+		nil,
+		nil,
+	}
+
 	return table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
 		table.WithHeight(4),
-	)
+	), values, function
 }
 
-func captionsTable() table.Model {
+func (m model) captionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 	columns := []table.Column{
 		{Title: "#", Width: 6},
 		{Title: "Captions", Width: 50},
@@ -50,15 +94,49 @@ func captionsTable() table.Model {
 		{" ", "Quit"},
 	}
 
+	//values := CountRow{
+	//	tempM.CountFiles,
+	//	tempM.CountTotalCaptions,
+	//	tempM.CountImages,
+	//	tempM.CountImages,
+	//	tempM.nul,
+	//}
+
+	values := Keys{
+		{m.CountFiles},
+		{m.CountTotalCaptions},
+		{m.CountImages},
+		{m.CountImages},
+		{m.nul},
+		{m.nul},
+		{m.nul},
+		{m.CountPending},
+		{m.nul},
+		{m.nul},
+	}
+
+	function := EnterActions{
+		func() tea.Cmd { return nil },
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+	}
+
 	return table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(false),
 		table.WithHeight(10),
-	)
+	), values, function
 }
 
-func actionsTable() table.Model {
+func (m model) actionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 	columns := []table.Column{
 		{Title: "Current", Width: 6},
 		{Title: "New", Width: 6},
@@ -70,8 +148,29 @@ func actionsTable() table.Model {
 		{"0", "0", "0", "Move captions to the image files"},
 		{"0", "0", "0", "Hardlink captions to the image files"},
 		{" ", " ", "0", "Merge new captions to existing captions"},
-		{"0", "0", "0", "Append new tags to captions (dir)"},
+		{" ", " ", "0", "Append new tags to captions (dir)"},
 		{" ", " ", " ", "Replace spaces with [_]"},
+	}
+
+	//values := CountRow{
+	//	tempM.CountFiles,
+	//	tempM.CountImages,
+	//}
+
+	values := Keys{
+		{m.CountImagesWithCaptionsNextToThem, m.CountOverwrites, m.CountImagesWithCaptions},
+		{m.CountImagesWithCaptionsNextToThem, m.CountOverwrites, m.CountImagesWithCaptions},
+		{m.nul, m.nul, m.CountCaptionsToMerge},
+		{m.nul, m.nul, m.CountImagesWithCaptionsNextToThem},
+		{m.nul, m.nul, m.nul},
+	}
+
+	function := EnterActions{
+		func() tea.Cmd { return nil },
+		nil,
+		nil,
+		nil,
+		nil,
 	}
 
 	return table.New(
@@ -79,5 +178,5 @@ func actionsTable() table.Model {
 		table.WithRows(rows),
 		table.WithFocused(false),
 		table.WithHeight(7),
-	)
+	), values, function
 }
