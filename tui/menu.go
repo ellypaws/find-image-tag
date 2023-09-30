@@ -5,7 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type CountFunction func(tableID int, row int, column int) tea.Cmd
+type CountFunction func(m model, tableID int, row int, column int) tea.Cmd
 type CountRow []CountFunction
 type Keys []CountRow
 
@@ -42,10 +42,10 @@ func (m model) statsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 	}
 
 	values := Keys{
-		{m.CountImagesWithCaptions},
-		{m.CountCaptionDirectoryMatchImageDirectory},
-		{m.CountImagesWithoutCaptions},
-		{m.CountPending},
+		{CountImagesWithCaptions},
+		{CountCaptionDirectoryMatchImageDirectory},
+		{CountImagesWithoutCaptions},
+		{CountPending},
 	}
 
 	function := EnterActions{
@@ -83,16 +83,16 @@ func (m model) captionsTable() (tbl table.Model, keys Keys, enter EnterActions) 
 	}
 
 	values := Keys{
-		{m.CountFiles},
-		{m.CountTotalCaptions},
-		{m.CountImages},
-		{m.CountImages},
-		{m.nul},
-		{m.nul},
-		{m.nul},
-		{m.CountPending},
-		{m.nul},
-		{m.nul},
+		{CountFiles},
+		{CountTotalCaptions},
+		{CountImages},
+		{CountImages},
+		{nul},
+		{nul},
+		{nul},
+		{CountPending},
+		{nul},
+		{nul},
 	}
 
 	function := EnterActions{
@@ -133,11 +133,11 @@ func (m model) actionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 	}
 
 	values := Keys{
-		{m.CountImagesWithCaptionsNextToThem, m.CountOverwrites, m.CountImagesWithCaptions},
-		{m.CountImagesWithCaptionsNextToThem, m.CountOverwrites, m.CountImagesWithCaptions},
-		{m.nul, m.nul, m.CountCaptionsToMerge},
-		{m.nul, m.nul, m.CountImagesWithCaptionsNextToThem},
-		{m.nul, m.nul, m.nul},
+		{CountImagesWithCaptionsNextToThem, CountOverwrites, CountImagesWithCaptions},
+		{CountImagesWithCaptionsNextToThem, CountOverwrites, CountImagesWithCaptions},
+		{nul, nul, CountCaptionsToMerge},
+		{nul, nul, CountImagesWithCaptionsNextToThem},
+		{nul, nul, nul},
 	}
 
 	function := EnterActions{

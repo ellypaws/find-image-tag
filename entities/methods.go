@@ -33,19 +33,19 @@ func (data *DataSet) checkForMissingImages() {
 }
 
 const (
-	addBoth = iota
-	addCaption
-	addImage
+	AddBoth = iota
+	AddCaption
+	AddImage
 )
 
 func (data *DataSet) WriteFiles(filter int, directory string) {
 	var regex string
 	switch filter {
-	case addBoth:
+	case AddBoth:
 		regex = `(?i)\.(jpe?g|png|gif|bmp|txt)$`
-	case addCaption:
+	case AddCaption:
 		regex = `(?i)\.(txt)$`
-	case addImage:
+	case AddImage:
 		regex = `(?i)\.(jpe?g|png|gif|bmp)$`
 	}
 	//regex := `(?i)\.(jpe?g|png|gif|bmp|txt)$`

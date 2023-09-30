@@ -23,6 +23,8 @@ func main() {
 	//data := InitDataSet()
 	//
 	//data.promptOption()
+
+	roggy.LogLevel = roggy.TypeRoggy
 	tui.Main()
 }
 

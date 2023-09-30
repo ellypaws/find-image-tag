@@ -16,7 +16,7 @@ func (m model) View() string {
 		} else {
 			m.menus[menuID].Menu.SetStyles(unfocused)
 		}
-		//view += m.menus[menuID].Menu.View()
+		//view += m.menus[menuID].Menu.View() + "\n"
 	}
 	view += m.menus[0].Menu.View() + "\n\n"
 	view += m.menus[1].Menu.View() + "\n\n"
@@ -37,6 +37,8 @@ func (m model) View() string {
 	if m.showTextInput {
 		textInputView := m.textInput.View()
 		view += baseStyle.Render(textInputView) + "\n"
+	} else {
+		view = view
 	}
 	return view
 }

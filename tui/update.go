@@ -13,6 +13,12 @@ import (
 )
 
 const (
+	AddBoth = iota
+	AddCaption
+	AddImage
+)
+
+const (
 	padding  = 2
 	maxWidth = 80
 )
@@ -72,10 +78,31 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.table.SelectedRow()[3] = s
 		m.table.UpdateViewport() // this is how we update after
 
+	case msgToPrint:
+		return m, tea.Printf(string(msg))
+
+	case []Menu:
+		m.menus = msg
+
 	// menu handlers
 	case updateNum:
 		m.menus[msg.tableID].Menu.Rows()[msg.row][msg.column] = msg.num
 		m.menus[msg.tableID].Menu.UpdateViewport()
+
+	case startCount:
+		if msg {
+			for menuID, currentMenu := range m.menus {
+				for row := range currentMenu.Menu.Rows() {
+					for column := range currentMenu.Menu.Rows()[row] {
+						cmdFunc := currentMenu.UpdateFunc[row][column]
+						if cmdFunc != nil {
+							cmd := cmdFunc(m, menuID, row, column)
+							return m, cmd
+						}
+					}
+				}
+			}
+		}
 
 	// FrameMsg is sent when the progress bar wants to animate itself
 	case progress.FrameMsg:
@@ -93,8 +120,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.showTextInput {
 			if msg.Type == tea.KeyEnter {
 				m.showTextInput = false
-				m.table.Focus()
-				return m, tea.Println(m.textInput.Value())
+				m.menus[0].Menu.Focus()
+				m.DataSet.WriteFiles(AddBoth, m.textInput.Value())
+
+				return m, refresh()
 			}
 			path := m.textInput.Value()
 			if path == "" {
@@ -129,10 +158,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter":
 			// on enter handler
-			for _, currentMenu := range m.menus {
+			for menuID, currentMenu := range m.menus {
 				if currentMenu.Menu.Focused() {
 					if ok := currentMenu.EnterFunc[currentMenu.Menu.Cursor()]; ok != nil {
-						currentMenu.Menu.Blur()
+						m.menus[menuID].Menu.Blur()
+						m.showTextInput = true
+						//m.menus[menuID].Menu.UpdateViewport()
 						return m, ok()
 					}
 				}
@@ -156,17 +187,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			runCmd := tea.Batch(addMultiple())
 			return m, runCmd
 		case "u":
-			for menuID, currentMenu := range m.menus {
-				for row := range currentMenu.Menu.Rows() {
-					for column := range currentMenu.Menu.Rows()[row] {
-						cmdFunc := currentMenu.UpdateFunc[row][column]
-						if cmdFunc != nil {
-							cmd := cmdFunc(menuID, row, column) // assuming you have `tableID` and `column` variables in your context
-							return m, cmd
-						}
-					}
-				}
-			}
+			return m, refresh()
 		}
 
 		for menuID, currentMenu := range m.menus {
@@ -205,6 +226,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(append(batch, cmd)...)
 }
 
+func refresh() tea.Cmd {
+	return func() tea.Msg {
+		return startCount(true)
+	}
+}
+
 type updateNum struct {
 	num     string
 	tableID int
@@ -217,3 +244,5 @@ type addMultipleMsg struct {
 	current int
 	total   int
 }
+type msgToPrint string
+type startCount bool
