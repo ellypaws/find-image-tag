@@ -145,20 +145,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case updateNum: // menu handlers
 		m.menus[msg.tableID].Menu.Rows()[msg.row][msg.column] = msg.num
 		m.menus[msg.tableID].Menu.UpdateViewport()
+		return m, nil
 	case startCount:
+		var updates []tea.Cmd
 		if msg {
 			for menuID, currentMenu := range m.menus {
 				for row := range currentMenu.Menu.Rows() {
-					for column := range currentMenu.Menu.Rows()[row] {
-						cmdFunc := currentMenu.UpdateFunc[row][column]
-						if cmdFunc != nil {
-							cmd := cmdFunc(m, menuID, row, column)
-							return m, cmd
+					for column, updateFuncCell := range currentMenu.UpdateFunc[row] {
+						if updateFuncCell != nil {
+							cmd := updateFuncCell(m, menuID, row, column)
+							updates = append(updates, cmd)
 						}
 					}
 				}
 			}
 		}
+		return m, tea.Batch(updates...)
 	case progress.FrameMsg: // FrameMsg is sent when the progress bar wants to animate itself
 		progressModel, cmd := m.progress.Update(msg)
 		m.progress = progressModel.(progress.Model)

@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -75,7 +74,6 @@ func CountCaptionsToMerge(m model, tableID int, row int, column int) tea.Cmd {
 
 func CountImagesWithoutCaptions(m model, tableID int, row int, column int) tea.Cmd {
 	newCount := formatWithComma(m.DataSet.CountImagesWithoutCaptions())
-	fmt.Println("CountImagesWithoutCaptions", newCount)
 	return func() tea.Msg {
 		return updateNum{tableID: tableID, row: row, column: column, num: newCount}
 	}
