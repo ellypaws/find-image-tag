@@ -5,6 +5,7 @@ import (
 	"find-image-tag/tui/autocomplete"
 	"find-image-tag/tui/sender"
 	"github.com/charmbracelet/bubbles/progress"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"os"
@@ -262,21 +263,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		newMsg := sender.ResultMsg{Food: string(msg), Duration: time.Second * 2}
 		senderModel, snd := m.sender.Update(newMsg)
 		m.sender = senderModel.(sender.Model)
-		m.senderActiveDuration = 5 * time.Second
-		return m, tea.Batch(snd, tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		m.senderActiveDuration = 2 * time.Second
+		return m, tea.Batch(snd, tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
 			return tickMsg{}
 		}))
 
 	case tickMsg:
 		if m.senderActiveDuration > 0 {
-			m.senderActiveDuration -= time.Second
+			m.senderActiveDuration -= 100 * time.Millisecond
 			if m.senderActiveDuration <= 0 {
 				m.sender.Active = false
 				return m, nil
 			}
-			return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
+
+			//send spinner update to m.sender as a tea.Msg
+
+			//also works
+			//senderModel, spinnerMsg := m.sender.Update(spinner.TickMsg{})
+			//m.sender = senderModel.(sender.Model)
+
+			// no need to receive the tea.Msg that Update() returns unless we're doing more with it.
+			senderSpinnerModel, _ := m.sender.Spinner.Update(spinner.TickMsg{})
+			m.sender.Spinner = senderSpinnerModel
+
+			return m, tea.Batch(tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
 				return tickMsg{}
-			})
+			}))
 		}
 	}
 
