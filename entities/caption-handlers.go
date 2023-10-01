@@ -155,32 +155,20 @@ func (data *DataSet) CaptionsToImages(action int, overwrite bool) {
 	}
 }
 
-func AppendNewTags(s string) {
-	scanner := bufio.NewScanner(os.Stdin)
-
-	// Prompt for a directory
-	captionLogPrinter.Infof("Please enter directory path: ")
-	scanner.Scan()
-	directory := scanner.Text()
-
-	// Prompt for new tags
-	captionLogPrinter.Infof("Please enter new tags to add (separated by comma): ")
-	scanner.Scan()
-	newTagsInput := strings.TrimSpace(scanner.Text())
-
+func AppendNewTags(dir string, tags string) {
 	// Split newTagsInput string to slice of tags
-	newTags := strings.Split(newTagsInput, ",")
+	newTags := strings.Split(tags, ",")
 	for i, tag := range newTags {
 		newTags[i] = strings.TrimSpace(strings.ToLower(tag))
 	}
 
-	files, err := os.ReadDir(directory)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		captionLogPrinter.Errorf("Failed to read directory: %v", err)
 		return
 	}
 
-	changeAll := false
+	//changeAll := false
 
 	// Process each file in the directory
 	for _, f := range files {
@@ -189,7 +177,7 @@ func AppendNewTags(s string) {
 		}
 
 		// Read the existing tags from the file
-		bs, err := os.ReadFile(filepath.Join(directory, f.Name()))
+		bs, err := os.ReadFile(filepath.Join(dir, f.Name()))
 		if err != nil {
 			captionLogPrinter.Errorf("Failed to read file: %v", err)
 			continue
@@ -226,22 +214,22 @@ func AppendNewTags(s string) {
 		// Join the tags with commas
 		newContent := strings.Join(mergedTags, ", ") + "\n"
 
-		if !changeAll {
-			// Preview changes and prompt for confirmation
-			captionLogPrinter.Infof("New content for file %s will be:\n%s", f.Name(), newContent)
-			captionLogPrinter.Infof("Apply changes? (y/n/all): ")
-			scanner.Scan()
-			userInput := scanner.Text()
-			if userInput == "n" {
-				captionLogPrinter.Infof("Changes not applied. Moving to next file.")
-				continue
-			} else if userInput == "all" {
-				changeAll = true
-			}
-		}
+		//if !changeAll {
+		//	// Preview changes and prompt for confirmation
+		//	captionLogPrinter.Infof("New content for file %s will be:\n%s", f.Name(), newContent)
+		//	captionLogPrinter.Infof("Apply changes? (y/n/all): ")
+		//	scanner.Scan()
+		//	userInput := scanner.Text()
+		//	if userInput == "n" {
+		//		captionLogPrinter.Infof("Changes not applied. Moving to next file.")
+		//		continue
+		//	} else if userInput == "all" {
+		//		changeAll = true
+		//	}
+		//}
 
 		// Write the updated content to the file
-		err = os.WriteFile(filepath.Join(directory, f.Name()), []byte(newContent), 0644)
+		err = os.WriteFile(filepath.Join(dir, f.Name()), []byte(newContent), 0644)
 		if err != nil {
 			captionLogPrinter.Errorf("Failed to write to file: %v", err)
 			continue
@@ -249,7 +237,7 @@ func AppendNewTags(s string) {
 
 		// Create a preview snippet of the new text
 		end := len(newContent)
-		desiredLength := len(newTagsInput) + 50
+		desiredLength := len(tags) + 50
 		if len(newContent) > desiredLength {
 			end = desiredLength
 		}

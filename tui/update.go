@@ -3,9 +3,10 @@ package tui
 import (
 	"find-image-tag/entities"
 	"find-image-tag/tui/autocomplete"
+	"find-image-tag/tui/sender"
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/table"
-	"github.com/charmbracelet/bubbletea"
+	tea "github.com/charmbracelet/bubbletea"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -60,7 +61,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.DataSet.CaptionsToImages(Merge, m.overwrite)
 			case AddTags:
 				i = Underscores
-				m.showTextInput = true
+				m.showMultiInput = true
 			}
 		}
 
@@ -170,12 +171,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.Type == tea.KeyEnter {
 				switch i {
 				case AddBoth, AddCaption, AddImage:
+					m.showTextInput = false
 					m.DataSet.WriteFiles(int(i), m.textInput.Value())
+					m.menus[0].Menu.Focus()
 				case Underscores:
-					entities.AppendNewTags(m.textInput.Value())
+					m.showMultiInput = false
+					entities.AppendNewTags(m.multiTextInput.Inputs[0].Value(), m.multiTextInput.Inputs[1].Value())
+					m.menus[2].Menu.Focus()
 				}
-				m.showTextInput = false
-				m.menus[0].Menu.Focus()
 				return m, Refresh()
 			}
 
@@ -209,15 +212,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			for _, currentMenu := range m.menus {
+			for tableID, currentMenu := range m.menus {
 				if currentMenu.Menu.Focused() {
 					if ok := currentMenu.EnterFunc[currentMenu.Menu.Cursor()]; ok != nil {
+						if tableID != 0 {
+							m.menus[tableID].Menu.Blur()
+						}
 						cmd = ok(m, cmd)
 						return m, cmd
 					}
 				}
 			}
-			return m, Refresh()
 		case "a":
 			if m.showTextInput {
 				return m, nil
@@ -251,12 +256,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+		// result handler
+	case senderMsg:
+		m.sender.Active = true
+		newMsg := sender.ResultMsg{Food: string(msg), Duration: time.Second * 2}
+		senderModel, snd := m.sender.Update(newMsg)
+		m.sender = senderModel.(sender.Model)
+		return m, tea.Batch(snd)
 	}
 
 	// update tables
 	var batch []tea.Cmd
 	m.table, cmd = m.table.Update(msg)
-
 	for menuID, currentMenu := range m.menus {
 		m.menus[menuID].Menu, cmd = currentMenu.Menu.Update(msg)
 		batch = append(batch, cmd)
@@ -320,3 +331,5 @@ type Actions struct {
 	Menu int
 	Do   int
 }
+
+type senderMsg string

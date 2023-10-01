@@ -50,7 +50,9 @@ func (m model) statsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 
 	function := EnterActions{
 		func(m model, c tea.Cmd) tea.Cmd {
-			return Refresh()
+			return func() tea.Msg {
+				return senderMsg("test")
+			}
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
 			return Refresh()

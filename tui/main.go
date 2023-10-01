@@ -3,24 +3,31 @@ package tui
 import (
 	"find-image-tag/entities"
 	"find-image-tag/tui/autocomplete"
+	"find-image-tag/tui/sender"
+	textinputs "find-image-tag/tui/text-inputs"
 	"fmt"
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"math/rand"
 	"os"
+	"time"
 )
 
 type model struct {
-	DataSet       *entities.DataSet
-	table         table.Model
-	menus         []Menu
-	overwrite     bool
-	progress      progress.Model
-	showProgress  bool
-	textInput     textinput.Model
-	showTextInput bool
+	DataSet        *entities.DataSet
+	table          table.Model
+	menus          []Menu
+	overwrite      bool
+	progress       progress.Model
+	showProgress   bool
+	textInput      textinput.Model
+	showTextInput  bool
+	multiTextInput textinputs.Model
+	showMultiInput bool
+	sender         sender.Model
 }
 
 type Menu struct {
@@ -71,11 +78,13 @@ func Main() {
 		Foreground(lipgloss.Color("#bbbbbb"))
 
 	m := model{
-		table:     t,
-		progress:  progress.New(progress.WithDefaultGradient()),
-		textInput: autocomplete.Init(),
-		menus:     model{}.NewMenu(),
-		DataSet:   entities.InitDataSet(),
+		table:          t,
+		progress:       progress.New(progress.WithDefaultGradient()),
+		textInput:      autocomplete.Init(),
+		menus:          model{}.NewMenu(),
+		DataSet:        entities.InitDataSet(),
+		multiTextInput: textinputs.InitialModel(),
+		sender:         sender.NewModel(),
 	}
 
 	m.DataSet.Images["testImage1"] = &entities.Image{
@@ -96,7 +105,23 @@ func Main() {
 		}
 	}
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
+	p := tea.NewProgram(m)
+
+	go func() {
+		for i := 0; i < 10; i++ {
+			m.sender.Active = true
+			pause := time.Duration(rand.Int63n(899)+100) * time.Millisecond // nolint:gosec
+			time.Sleep(pause)
+
+			// Send the Bubble Tea program a message from outside the
+			// tea.Program. This will block until it is ready to receive
+			// messages.
+			p.Send(sender.ResultMsg{Food: sender.RandomFood(), Duration: pause})
+		}
+		m.sender.Active = false
+	}()
+
+	if _, err := p.Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
