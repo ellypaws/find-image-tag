@@ -262,7 +262,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		newMsg := sender.ResultMsg{Food: string(msg), Duration: time.Second * 2}
 		senderModel, snd := m.sender.Update(newMsg)
 		m.sender = senderModel.(sender.Model)
-		return m, tea.Batch(snd)
+		m.senderActiveDuration = 5 * time.Second
+		return m, tea.Batch(snd, tea.Tick(time.Second, func(t time.Time) tea.Msg {
+			return tickMsg{}
+		}))
+
+	case tickMsg:
+		if m.senderActiveDuration > 0 {
+			m.senderActiveDuration -= time.Second
+			if m.senderActiveDuration <= 0 {
+				m.sender.Active = false
+				return m, nil
+			}
+			return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
+				return tickMsg{}
+			})
+		}
 	}
 
 	// update tables
@@ -333,3 +348,5 @@ type Actions struct {
 }
 
 type senderMsg string
+
+type tickMsg struct{}

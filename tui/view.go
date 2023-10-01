@@ -47,10 +47,10 @@ func (m model) View() string {
 		view += baseStyle.Render(textInputView) + "\n"
 	}
 
-	//if m.sender.Active {
-	//	view += m.sender.View() + "\n"
-	//}
-	view += m.sender.View() + "\n"
+	if m.sender.Active {
+		view += m.sender.View() + "\n"
+	}
+	//view += m.sender.View() + "\n"
 
 	return view
 }
