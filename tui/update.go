@@ -260,9 +260,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		// result handler
-	case senderMsg:
-		newMsg := sender.ResultMsg{Food: string(msg), Duration: time.Second * 2}
-		senderModel, _ := m.sender.Update(newMsg)
+	case sender.ResultMsg:
+		// check if duration is empty
+		if msg.Duration == 0 {
+			msg.Duration = time.Second * 2
+		}
+		senderModel, _ := m.sender.Update(msg)
 		m.sender = senderModel.(sender.Model)
 		m.senderActiveDuration = 2 * time.Second
 
@@ -359,7 +362,5 @@ type Actions struct {
 	Menu int
 	Do   int
 }
-
-type senderMsg string
 
 type tickMsg struct{}

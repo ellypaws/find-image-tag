@@ -23,8 +23,8 @@ var (
 )
 
 type ResultMsg struct {
-	Duration time.Duration
 	Food     string
+	Duration time.Duration
 }
 
 func (r ResultMsg) String() string {

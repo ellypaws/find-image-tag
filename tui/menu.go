@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"find-image-tag/tui/sender"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -51,7 +52,7 @@ func (m model) statsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 	function := EnterActions{
 		func(m model, c tea.Cmd) tea.Cmd {
 			return func() tea.Msg {
-				return senderMsg("test")
+				return sender.ResultMsg{Food: "test"}
 			}
 		},
 		func(m model, c tea.Cmd) tea.Cmd {
