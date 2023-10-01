@@ -262,8 +262,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		newMsg := sender.ResultMsg{Food: string(msg), Duration: time.Second * 2}
 		senderModel, _ := m.sender.Update(newMsg)
 		m.sender = senderModel.(sender.Model)
-		setTime := 2 * time.Second
-		m.senderActiveDuration = &setTime
+		m.senderActiveDuration = 2 * time.Second
 
 		if !m.sender.Active {
 			m.sender.Active = true
@@ -275,10 +274,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tickMsg:
-		newTime := *m.senderActiveDuration - 100*time.Millisecond
-		m.senderActiveDuration = &newTime
-		if newTime <= 0 {
+		m.senderActiveDuration -= 100 * time.Millisecond
+		if m.senderActiveDuration <= 0 {
 			m.sender.Active = false
+
+			// clear all results
+			m.sender = sender.NewModel()
 			return m, nil
 		}
 

@@ -28,7 +28,7 @@ type model struct {
 	multiTextInput       textinputs.Model
 	showMultiInput       bool
 	sender               sender.Model
-	senderActiveDuration *time.Duration
+	senderActiveDuration time.Duration
 }
 
 type Menu struct {
