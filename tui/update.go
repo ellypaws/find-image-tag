@@ -72,16 +72,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.progress.Width = maxWidth
 		}
 		return m, nil
-	case progressMsg:
+	case writeFilesMsg:
 		if msg.current%10 == 0 { // Only update progress for multiples of 5
 			currentProgress := float64(msg.current) / float64(msg.total)
 			cmd = m.progress.SetPercent(currentProgress)
 		}
 
 		if msg.current < msg.total {
-			processDirectory(&m, AddBoth, msg.dirs[msg.current-1], msg)
-			return m, tea.Batch(tea.Tick(time.Millisecond, func(t time.Time) tea.Msg {
-				return progressMsg{current: msg.current + 1, total: msg.total, dirs: msg.dirs}
+			processDirectoryMsg := processDirectory(&m, AddBoth, msg.dirs[msg.current-1], msg)
+			return m, tea.Batch(processDirectoryMsg, tea.Tick(time.Millisecond, func(t time.Time) tea.Msg {
+				return writeFilesMsg{current: msg.current + 1, total: msg.total, dirs: msg.dirs}
 			}), cmd)
 		} else {
 			m.showProgress = false
@@ -175,8 +175,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch i {
 				case AddBoth, AddCaption, AddImage:
 					m.showTextInput = false
-					m.DataSet.WriteFiles(int(i), m.textInput.Value())
+					dirToMultiple := m.singleDirToMultiple(int(i), m.textInput.Value())
 					m.menus[0].Menu.Focus()
+					return m, dirToMultiple
 				case Underscores:
 					m.showMultiInput = false
 					entities.AppendNewTags(m.multiTextInput.Inputs[0].Value(), m.multiTextInput.Inputs[1].Value())
@@ -324,9 +325,10 @@ type addMultipleMsg struct {
 	current int
 	total   int
 }
-type progressMsg struct {
+type writeFilesMsg struct {
 	current int
 	total   int
+	filter  int
 	dirs    []string
 }
 type msgToPrint string

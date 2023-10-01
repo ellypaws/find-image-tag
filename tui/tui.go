@@ -1,12 +1,14 @@
 package tui
 
 import (
+	"find-image-tag/tui/sender"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var baseStyle = lipgloss.NewStyle().
@@ -24,7 +26,7 @@ func addMultiple(steps int) tea.Cmd {
 	}
 }
 
-func directoryParse(filter int, directory string) tea.Cmd {
+func (m model) singleDirToMultiple(filter int, directory string) tea.Cmd {
 	// get all folders in directory (just one level deep)
 	var dirEntries []os.DirEntry
 	entries, err := os.ReadDir(directory)
@@ -46,22 +48,32 @@ func directoryParse(filter int, directory string) tea.Cmd {
 	}
 
 	msg := func() tea.Msg {
-		return progressMsg{current: 1, total: numDirs, dirs: dirSliceFullPath}
+		return writeFilesMsg{
+			1,
+			numDirs,
+			filter,
+			dirSliceFullPath}
 	}
-
 	return msg
-
 }
 
-func processDirectory(m *model, filter int, directory string, progress progressMsg) tea.Cmd {
+func processDirectory(m *model, filter int, directory string, currentMsg writeFilesMsg) tea.Cmd {
 	m.DataSet.WriteFiles(filter, directory)
-	return func() tea.Msg {
-		return progressMsg{
-			current: progress.current + 1,
-			total:   progress.total,
-			dirs:    progress.dirs,
+	sendAgain := func() tea.Msg {
+		return writeFilesMsg{
+			current: currentMsg.current + 1,
+			total:   currentMsg.total,
+			filter:  currentMsg.filter,
+			dirs:    currentMsg.dirs,
 		}
 	}
+	addToLog := func() tea.Msg {
+		return sender.ResultMsg{
+			Food:     currentMsg.dirs[currentMsg.current],
+			Duration: time.Duration(currentMsg.current),
+		}
+	}
+	return tea.Batch(sendAgain, addToLog)
 }
 
 func addOne(num string) string {
