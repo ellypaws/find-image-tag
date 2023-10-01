@@ -261,10 +261,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case senderMsg:
 		m.sender.Active = true
 		newMsg := sender.ResultMsg{Food: string(msg), Duration: time.Second * 2}
-		senderModel, snd := m.sender.Update(newMsg)
+		senderModel, _ := m.sender.Update(newMsg)
 		m.sender = senderModel.(sender.Model)
 		m.senderActiveDuration = 2 * time.Second
-		return m, tea.Batch(snd, tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+		return m, tea.Batch(tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
 			return tickMsg{}
 		}))
 
