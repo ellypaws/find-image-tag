@@ -259,37 +259,35 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		// result handler
 	case senderMsg:
-		m.sender.Active = true
 		newMsg := sender.ResultMsg{Food: string(msg), Duration: time.Second * 2}
 		senderModel, _ := m.sender.Update(newMsg)
 		m.sender = senderModel.(sender.Model)
-		m.senderActiveDuration = 2 * time.Second
-		return m, tea.Batch(tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
-			return tickMsg{}
-		}))
+		setTime := 2 * time.Second
+		m.senderActiveDuration = &setTime
 
-	case tickMsg:
-		if m.senderActiveDuration > 0 {
-			m.senderActiveDuration -= 100 * time.Millisecond
-			if m.senderActiveDuration <= 0 {
-				m.sender.Active = false
-				return m, nil
-			}
-
-			//send spinner update to m.sender as a tea.Msg
-
-			//also works
-			//senderModel, spinnerMsg := m.sender.Update(spinner.TickMsg{})
-			//m.sender = senderModel.(sender.Model)
-
-			// no need to receive the tea.Msg that Update() returns unless we're doing more with it.
-			senderSpinnerModel, _ := m.sender.Spinner.Update(spinner.TickMsg{})
-			m.sender.Spinner = senderSpinnerModel
-
+		if !m.sender.Active {
+			m.sender.Active = true
 			return m, tea.Batch(tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
 				return tickMsg{}
 			}))
 		}
+
+		return m, nil
+
+	case tickMsg:
+		newTime := *m.senderActiveDuration - 100*time.Millisecond
+		m.senderActiveDuration = &newTime
+		if newTime <= 0 {
+			m.sender.Active = false
+			return m, nil
+		}
+
+		senderSpinnerModel, _ := m.sender.Spinner.Update(spinner.TickMsg{})
+		m.sender.Spinner = senderSpinnerModel
+
+		return m, tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+			return tickMsg{}
+		})
 	}
 
 	// update tables
