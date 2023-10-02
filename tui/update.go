@@ -74,18 +74,35 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	case writeFilesMsg:
-		if msg.current%10 == 0 { // Only update progress for multiples of 5
+		if msg.current%1 == 0 {
 			currentProgress := float64(msg.current) / float64(msg.total)
 			cmd = m.progress.SetPercent(currentProgress)
 		}
 
 		if msg.current < msg.total {
 			processDirectoryMsg := processDirectory(&m, AddBoth, msg)
-			return m, tea.Batch(processDirectoryMsg)
-		} else {
-			m.showProgress = false
-		}
+			return m, tea.Batch(cmd, processDirectoryMsg)
+		} //else {
+		//	m.showProgress = false
+		//}
 		return m, cmd
+	case tickMsg:
+		m.senderActiveDuration -= 100 * time.Millisecond
+		if m.senderActiveDuration <= 0 {
+			m.sender.Active = false
+			m.showProgress = false
+
+			// clear all results
+			m.sender = sender.NewModel()
+			return m, Refresh()
+		}
+
+		senderSpinnerModel, _ := m.sender.Spinner.Update(spinner.TickMsg{})
+		m.sender.Spinner = senderSpinnerModel
+
+		return m, tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+			return tickMsg{}
+		})
 	case addMultipleMsg:
 		var numString string
 		var modelToUpdate *table.Model
@@ -168,6 +185,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p := float64(msg)
 		cmd = m.progress.SetPercent(p)
 		return m, cmd
+	case sender.ResultMsg:
+		// check if duration is empty
+		if msg.Duration == 0 {
+			msg.Duration = time.Second * 2
+		}
+		senderModel, _ := m.sender.Update(msg)
+		m.sender = senderModel.(sender.Model)
+		m.senderActiveDuration = 2 * time.Second
+
+		if !m.sender.Active {
+			m.sender.Active = true
+			return m, tea.Batch(tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
+				return tickMsg{}
+			}))
+		}
+
+		return m, nil
 	case tea.KeyMsg:
 		if m.showTextInput { // Directory handler
 			if msg.Type == tea.KeyEnter {
@@ -261,40 +295,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		// result handler
-	case sender.ResultMsg:
-		// check if duration is empty
-		if msg.Duration == 0 {
-			msg.Duration = time.Second * 2
-		}
-		senderModel, _ := m.sender.Update(msg)
-		m.sender = senderModel.(sender.Model)
-		m.senderActiveDuration = 2 * time.Second
-
-		if !m.sender.Active {
-			m.sender.Active = true
-			return m, tea.Batch(tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
-				return tickMsg{}
-			}))
-		}
-
-		return m, nil
-
-	case tickMsg:
-		m.senderActiveDuration -= 100 * time.Millisecond
-		if m.senderActiveDuration <= 0 {
-			m.sender.Active = false
-
-			// clear all results
-			m.sender = sender.NewModel()
-			return m, Refresh()
-		}
-
-		senderSpinnerModel, _ := m.sender.Spinner.Update(spinner.TickMsg{})
-		m.sender.Spinner = senderSpinnerModel
-
-		return m, tea.Tick(100*time.Millisecond, func(t time.Time) tea.Msg {
-			return tickMsg{}
-		})
 	}
 
 	// update tables
