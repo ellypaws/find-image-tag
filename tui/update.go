@@ -44,6 +44,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case Print:
 				m.DataSet.PrettyJson()
 			case Reset:
+				m.DataSet = entities.InitDataSet()
 			case WriteJSON:
 				m.DataSet.WriteJson()
 			case Append:
@@ -66,6 +67,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.showMultiInput = true
 			}
 		}
+		m.menus[msg.Menu].Menu.Focus()
+		return m, Refresh()
 
 	case tea.WindowSizeMsg:
 		m.progress.Width = msg.Width - padding*2 - 4

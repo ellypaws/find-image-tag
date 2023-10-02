@@ -34,12 +34,10 @@ func (m model) singleDirToMultiple(filter int, directory string) tea.Cmd {
 		return nil
 	}
 
-	numDirs := len(dirSliceFullPath)
-
 	msg := func() tea.Msg {
 		return writeFilesMsg{
 			current: 1,
-			total:   numDirs,
+			total:   len(dirSliceFullPath),
 			filter:  filter,
 			dirs:    dirSliceFullPath,
 			wg:      &sync.WaitGroup{},
