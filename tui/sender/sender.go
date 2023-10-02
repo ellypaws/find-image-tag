@@ -36,9 +36,10 @@ func (r ResultMsg) String() string {
 }
 
 type Model struct {
-	Spinner spinner.Model
-	Results []ResultMsg
-	Active  bool
+	Spinner  spinner.Model
+	Results  []ResultMsg
+	Active   bool
+	Duration time.Duration
 }
 
 func NewModel() Model {

@@ -97,8 +97,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// showProgress gets set off in tickMsg instead
 		return m, cmd
 	case tickMsg:
-		m.senderActiveDuration -= 100 * time.Millisecond
-		if m.senderActiveDuration <= 0 {
+		m.sender.Duration -= 100 * time.Millisecond
+		if m.sender.Duration <= 0 {
 			m.sender.Active = false
 
 			// clear all results
@@ -113,7 +113,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.progress = progress.New(progress.WithDefaultGradient())
 		}
 
-		if m.progressActiveDuration == 0 || m.senderActiveDuration == 0 {
+		if m.progressActiveDuration == 0 || m.sender.Duration == 0 {
 			return m, Refresh()
 		}
 
@@ -202,7 +202,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		senderModel, _ := m.sender.Update(msg)
 		m.sender = senderModel.(sender.Model)
-		m.senderActiveDuration = 2 * time.Second
+		m.sender.Duration = 2 * time.Second
 
 		if !m.sender.Active {
 			m.sender.Active = true
