@@ -108,21 +108,19 @@ func (m model) singleDirToMultiple(filter int, directory string) tea.Cmd {
 	return tea.Batch(msg, tea.Batch(addToLog...), Refresh())
 }
 
-func processDirectory(m *model, filter int, directory string, currentMsg writeFilesMsg) tea.Cmd {
+func processDirectory(m *model, filter int, currentMsg writeFilesMsg) tea.Cmd {
 	currentMsg.wg.Add(1)
-	m.DataSet.ImagesLock.Lock()
-	defer m.DataSet.ImagesLock.Unlock()
-	go m.DataSet.WriteFiles(filter, directory)
-	sendAgain := func() tea.Msg {
+	go m.DataSet.WriteFiles(filter, currentMsg.dirs[0])
+	sendAgain := func(t time.Time) tea.Msg {
 		return writeFilesMsg{
 			current: currentMsg.current + 1,
 			total:   currentMsg.total,
 			filter:  currentMsg.filter,
-			dirs:    currentMsg.dirs,
+			dirs:    currentMsg.dirs[1:],
 			wg:      currentMsg.wg,
 		}
 	}
-	return sendAgain
+	return tea.Tick(time.Millisecond, sendAgain)
 }
 
 func addOne(num string) string {

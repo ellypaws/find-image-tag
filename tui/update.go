@@ -80,10 +80,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if msg.current < msg.total {
-			processDirectoryMsg := processDirectory(&m, AddBoth, msg.dirs[msg.current-1], msg)
-			return m, tea.Batch(processDirectoryMsg, tea.Tick(time.Millisecond, func(t time.Time) tea.Msg {
-				return writeFilesMsg{current: msg.current + 1, total: msg.total, dirs: msg.dirs, wg: msg.wg}
-			}), cmd)
+			processDirectoryMsg := processDirectory(&m, AddBoth, msg)
+			return m, tea.Batch(processDirectoryMsg)
 		} else {
 			m.showProgress = false
 		}
@@ -140,7 +138,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.showTextInput = true
 	case []Menu:
 		m.menus = msg
-		for menuID, _ := range m.menus {
+		for menuID := range m.menus {
 			m.menus[menuID].Menu.UpdateViewport()
 		}
 	case updateNum: // menu handlers
