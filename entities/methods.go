@@ -78,6 +78,8 @@ func (data *DataSet) WriteFiles(filter int, directory string) {
 		fileLogPrinter.Debugf("Processing File: %s", currentEntry)
 
 		if extension == ".txt" {
+			data.CaptionLock.Lock()
+			defer data.CaptionLock.Unlock()
 			if _, ok := data.TempCaption[fileName]; !ok {
 				if data.TempCaption == nil {
 					data.InitTempCaption()
@@ -93,6 +95,8 @@ func (data *DataSet) WriteFiles(filter int, directory string) {
 		}
 
 		if _, ok := data.Images[fileName]; !ok {
+			data.ImagesLock.Lock()
+			defer data.ImagesLock.Unlock()
 			newImg := Image{Filename: currentEntry, Extension: extension, Directory: directory}
 			newImg.InitCaption()
 			data.Images[fileName] = &newImg

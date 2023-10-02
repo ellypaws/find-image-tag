@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -49,31 +50,79 @@ func (m model) singleDirToMultiple(filter int, directory string) tea.Cmd {
 
 	msg := func() tea.Msg {
 		return writeFilesMsg{
-			1,
-			numDirs,
-			filter,
-			dirSliceFullPath}
+			current: 1,
+			total:   numDirs,
+			filter:  filter,
+			dirs:    dirSliceFullPath,
+			wg:      &sync.WaitGroup{},
+		}
 	}
-	return msg
+
+	// log all directories and calculate time
+	var addToLog []tea.Cmd
+	currentTime := time.Now()
+	//for _, dir := range dirSliceFullPath {
+	//	addToLog = append(addToLog, func() tea.Msg {
+	//		return sender.ResultMsg{
+	//			Food:     dir,
+	//			Duration: time.Since(currentTime),
+	//		}
+	//	})
+	//}
+	wg := &sync.WaitGroup{}
+
+	for _, dir := range dirSliceFullPath {
+		wg.Add(1)
+		go func(dir string) {
+			defer wg.Done()
+			currentTime := time.Now()
+			addToLog = append(addToLog, func() tea.Msg {
+				return sender.ResultMsg{
+					Food:     dir,
+					Duration: time.Since(currentTime),
+				}
+			})
+		}(dir)
+	}
+
+	wg.Wait()
+
+	const test = false
+	if test {
+		// concatenate all directories into one long string, then send as a ResultMsg
+		var dirString strings.Builder
+		for _, dir := range dirSliceFullPath {
+			dirString.WriteString(dir + "\n")
+		}
+
+		addToLog = []tea.Cmd{
+			func() tea.Msg {
+				return sender.ResultMsg{
+					Food:     dirString.String(),
+					Duration: time.Since(currentTime),
+				}
+			},
+		}
+	}
+
+	return tea.Batch(msg, tea.Batch(addToLog...), Refresh())
 }
 
 func processDirectory(m *model, filter int, directory string, currentMsg writeFilesMsg) tea.Cmd {
-	m.DataSet.WriteFiles(filter, directory)
+	currentMsg.wg.Add(1)
+	m.DataSet.ImagesLock.Lock()
+	defer m.DataSet.ImagesLock.Unlock()
+	go m.DataSet.WriteFiles(filter, directory)
 	sendAgain := func() tea.Msg {
 		return writeFilesMsg{
 			current: currentMsg.current + 1,
 			total:   currentMsg.total,
 			filter:  currentMsg.filter,
 			dirs:    currentMsg.dirs,
+			wg:      currentMsg.wg,
 		}
 	}
-	addToLog := func() tea.Msg {
-		return sender.ResultMsg{
-			Food:     currentMsg.dirs[currentMsg.current],
-			Duration: time.Duration(currentMsg.current),
-		}
-	}
-	return tea.Batch(sendAgain, addToLog)
+	return sendAgain
 }
 
 func addOne(num string) string {

@@ -13,15 +13,21 @@ func (data *DataSet) CountFiles() int {
 }
 
 func (data *DataSet) CountPending() int {
+	data.CaptionLock.RLock()
+	defer data.CaptionLock.RUnlock()
 	return len(data.TempCaption)
 }
 
 func (data *DataSet) CountImages() int {
+	data.ImagesLock.RLock()
+	defer data.ImagesLock.RUnlock()
 	return len(data.Images)
 }
 
 func (data *DataSet) CountImagesWithCaptions() int {
 	count := 0
+	data.ImagesLock.RLock()
+	defer data.ImagesLock.RUnlock()
 	for _, image := range data.Images {
 		if image.Caption.Filename != "" {
 			count++
@@ -32,6 +38,8 @@ func (data *DataSet) CountImagesWithCaptions() int {
 
 func (data *DataSet) CountImagesWithCaptionsNextToThem() int {
 	count := 0
+	data.CaptionLock.RLock()
+	defer data.CaptionLock.RUnlock()
 	for name, image := range data.Images {
 		filePath := filepath.Join(image.Directory, name+".txt")
 		_, err := os.Stat(filePath)
@@ -45,6 +53,8 @@ func (data *DataSet) CountImagesWithCaptionsNextToThem() int {
 
 func (data *DataSet) CountOverwrites(overwrite bool) int {
 	count := 0
+	data.ImagesLock.RLock()
+	defer data.ImagesLock.RUnlock()
 	for _, image := range data.Images {
 
 		// first check if image.Caption.Filename is empty
@@ -86,6 +96,8 @@ func (data *DataSet) CountOverwrites(overwrite bool) int {
 // └── 📄 image.txt
 func (data *DataSet) CountCaptionsToMerge() int {
 	count := 0
+	data.ImagesLock.RLock()
+	defer data.ImagesLock.RUnlock()
 	for _, image := range data.Images {
 
 		if image.Caption.Filename == "" {
@@ -112,6 +124,8 @@ func (data *DataSet) CountCaptionsToMerge() int {
 
 func (data *DataSet) CountImagesWithoutCaptions() int {
 	count := 0
+	data.ImagesLock.RLock()
+	defer data.ImagesLock.RUnlock()
 	for _, image := range data.Images {
 		if image.Caption.Filename == "" {
 			count++
@@ -122,6 +136,8 @@ func (data *DataSet) CountImagesWithoutCaptions() int {
 
 func (data *DataSet) CountCaptionDirectoryMatchImageDirectory() int {
 	count := 0
+	data.ImagesLock.RLock()
+	defer data.ImagesLock.RUnlock()
 	for _, image := range data.Images {
 		if image.Caption.Directory == image.Directory {
 			count++

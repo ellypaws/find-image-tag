@@ -26,8 +26,8 @@ type Caption struct {
 type DataSet struct {
 	Images      map[string]*Image
 	TempCaption map[string]*Caption
-	imagesLock  sync.RWMutex
-	captionLock sync.RWMutex
+	ImagesLock  sync.RWMutex
+	CaptionLock sync.RWMutex
 }
 
 func (data *DataSet) InitImage() {

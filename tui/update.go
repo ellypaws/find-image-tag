@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -81,7 +82,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.current < msg.total {
 			processDirectoryMsg := processDirectory(&m, AddBoth, msg.dirs[msg.current-1], msg)
 			return m, tea.Batch(processDirectoryMsg, tea.Tick(time.Millisecond, func(t time.Time) tea.Msg {
-				return writeFilesMsg{current: msg.current + 1, total: msg.total, dirs: msg.dirs}
+				return writeFilesMsg{current: msg.current + 1, total: msg.total, dirs: msg.dirs, wg: msg.wg}
 			}), cmd)
 		} else {
 			m.showProgress = false
@@ -175,6 +176,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch i {
 				case AddBoth, AddCaption, AddImage:
 					m.showTextInput = false
+					m.showProgress = true
 					dirToMultiple := m.singleDirToMultiple(int(i), m.textInput.Value())
 					m.menus[0].Menu.Focus()
 					return m, dirToMultiple
@@ -286,7 +288,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// clear all results
 			m.sender = sender.NewModel()
-			return m, nil
+			return m, Refresh()
 		}
 
 		senderSpinnerModel, _ := m.sender.Spinner.Update(spinner.TickMsg{})
@@ -330,6 +332,7 @@ type writeFilesMsg struct {
 	total   int
 	filter  int
 	dirs    []string
+	wg      *sync.WaitGroup
 }
 type msgToPrint string
 type startCount bool

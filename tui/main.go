@@ -88,14 +88,14 @@ func Main() {
 		sender:         sender.NewModel(),
 	}
 
-	m.DataSet.Images["testImage1"] = &entities.Image{
-		"testImage1.jpg",
-		".jpg",
-		"F:\\lora",
-		0,
-		nil,
-		entities.Caption{},
-	}
+	//m.DataSet.Images["testImage1"] = &entities.Image{
+	//	"testImage1.jpg",
+	//	".jpg",
+	//	"F:\\lora",
+	//	0,
+	//	nil,
+	//	entities.Caption{},
+	//}
 
 	// set styles for each menu
 	for menuID, currentMenu := range m.menus {
@@ -109,7 +109,7 @@ func Main() {
 	p := tea.NewProgram(m)
 
 	go func() {
-		for i := 0; i < 10; i++ {
+		for i := 0; i < 3; i++ {
 			m.sender.Active = true
 			pause := time.Duration(rand.Int63n(899)+100) * time.Millisecond // nolint:gosec
 			time.Sleep(pause)

@@ -325,12 +325,12 @@ func (data *DataSet) AppendCaptionsConcurrently() {
 	var wg sync.WaitGroup
 
 	// Added using DataSet's locks
-	data.captionLock.RLock()
+	data.CaptionLock.RLock()
 	keys := make([]string, 0, len(data.TempCaption))
 	for k := range data.TempCaption {
 		keys = append(keys, k)
 	}
-	data.captionLock.RUnlock()
+	data.CaptionLock.RUnlock()
 
 	// Iterate over the keys
 	for _, k := range keys {
@@ -349,24 +349,27 @@ func (data *DataSet) appendCaption(waitGroup *sync.WaitGroup, key string) {
 	defer waitGroup.Done()
 
 	// Added using DataSet's locks
-	data.captionLock.RLock()
+	data.CaptionLock.RLock()
 	caption := data.TempCaption[key]
-	data.captionLock.RUnlock()
+	data.CaptionLock.RUnlock()
 
+	if caption == nil {
+		return
+	}
 	fileName, _ := strings.CutSuffix(caption.Filename, caption.Extension)
 	tempCaptionLogPrinter := roggy.Printer(fmt.Sprintf("caption-handler: %v", caption.Filename))
 
-	data.imagesLock.RLock()
+	data.ImagesLock.RLock()
 	img, ok := data.Images[fileName]
-	data.imagesLock.RUnlock()
+	data.ImagesLock.RUnlock()
 
 	if !ok {
 		tempCaptionLogPrinter.Errorf("Image file for caption %s does not exist", caption.Filename)
 		return
 	}
 
-	data.captionLock.Lock()
-	defer data.captionLock.Unlock()
+	data.CaptionLock.Lock()
+	defer data.CaptionLock.Unlock()
 	if img.Caption.Directory == caption.Directory {
 		tempCaptionLogPrinter.Noticef("Caption file for image %s already exists", fileName)
 		delete(data.TempCaption, fileName)
@@ -386,9 +389,9 @@ func (data *DataSet) appendCaption(waitGroup *sync.WaitGroup, key string) {
 	tempCaptionLogPrinter.Debugf("Image directory: %s", img.Directory)
 
 	img.Caption = *caption
-	data.imagesLock.Lock()
+	data.ImagesLock.Lock()
 	data.Images[fileName] = img
-	data.imagesLock.Unlock()
+	data.ImagesLock.Unlock()
 
 	delete(data.TempCaption, fileName)
 }
