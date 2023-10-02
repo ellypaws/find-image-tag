@@ -28,25 +28,13 @@ func addMultiple(steps int) tea.Cmd {
 }
 
 func (m model) singleDirToMultiple(filter int, directory string) tea.Cmd {
-	// get all folders in directory (just one level deep)
-	var dirEntries []os.DirEntry
-	entries, err := os.ReadDir(directory)
+	dirSliceFullPath, err := checkSubdirectoriesRecursively(directory, 10)
 	if err != nil {
+		// Handle the error accordingly. For now, returning nil.
 		return nil
 	}
 
-	for _, entry := range entries {
-		if entry.IsDir() {
-			dirEntries = append(dirEntries, entry)
-		}
-	}
-
-	// count the number of directories
-	numDirs := len(dirEntries)
-	dirSliceFullPath := make([]string, numDirs)
-	for i, dirEntry := range dirEntries {
-		dirSliceFullPath[i] = filepath.Join(directory, dirEntry.Name())
-	}
+	numDirs := len(dirSliceFullPath)
 
 	msg := func() tea.Msg {
 		return writeFilesMsg{
@@ -58,17 +46,8 @@ func (m model) singleDirToMultiple(filter int, directory string) tea.Cmd {
 		}
 	}
 
-	// log all directories and calculate time
 	var addToLog []tea.Cmd
-	currentTime := time.Now()
-	//for _, dir := range dirSliceFullPath {
-	//	addToLog = append(addToLog, func() tea.Msg {
-	//		return sender.ResultMsg{
-	//			Food:     dir,
-	//			Duration: time.Since(currentTime),
-	//		}
-	//	})
-	//}
+	var mutex sync.Mutex
 	wg := &sync.WaitGroup{}
 
 	for _, dir := range dirSliceFullPath {
@@ -76,36 +55,62 @@ func (m model) singleDirToMultiple(filter int, directory string) tea.Cmd {
 		go func(dir string) {
 			defer wg.Done()
 			currentTime := time.Now()
+			mutex.Lock()
 			addToLog = append(addToLog, func() tea.Msg {
 				return sender.ResultMsg{
 					Food:     dir,
 					Duration: time.Since(currentTime),
 				}
 			})
+			mutex.Unlock()
 		}(dir)
 	}
 
 	wg.Wait()
 
-	const test = false
-	if test {
-		// concatenate all directories into one long string, then send as a ResultMsg
-		var dirString strings.Builder
-		for _, dir := range dirSliceFullPath {
-			dirString.WriteString(dir + "\n")
+	return tea.Batch(msg, tea.Batch(addToLog...)) // Adjusted for Bubbletea's Batch usage.
+}
+
+func checkSubdirectoriesRecursively(directory string, maxChildren int) ([]string, error) {
+	var result []string
+
+	// Recursive helper function
+	var processDir func(currentDir string) error
+	processDir = func(currentDir string) error {
+		entries, err := os.ReadDir(currentDir)
+		if err != nil {
+			return err
 		}
 
-		addToLog = []tea.Cmd{
-			func() tea.Msg {
-				return sender.ResultMsg{
-					Food:     dirString.String(),
-					Duration: time.Since(currentTime),
-				}
-			},
+		subDirs := []string{}
+		for _, entry := range entries {
+			if entry.IsDir() {
+				subDirPath := filepath.Join(currentDir, entry.Name())
+				subDirs = append(subDirs, subDirPath)
+			}
 		}
+
+		if len(subDirs) > maxChildren {
+			// If more than maxChildren, recursively process each subdirectory
+			for _, subDir := range subDirs {
+				if err := processDir(subDir); err != nil {
+					return err
+				}
+			}
+		} else {
+			// Otherwise, simply add the current directory to the result
+			result = append(result, currentDir)
+		}
+
+		return nil
 	}
 
-	return tea.Batch(msg, tea.Batch(addToLog...), Refresh())
+	// Begin processing from the given directory
+	if err := processDir(directory); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func processDirectory(m *model, filter int, currentMsg writeFilesMsg) tea.Cmd {
