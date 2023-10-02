@@ -44,29 +44,7 @@ func (m model) singleDirToMultiple(filter int, directory string) tea.Cmd {
 		}
 	}
 
-	var addToLog []tea.Cmd
-	var mutex sync.Mutex
-	wg := &sync.WaitGroup{}
-
-	for _, dir := range dirSliceFullPath {
-		wg.Add(1)
-		go func(dir string) {
-			defer wg.Done()
-			currentTime := time.Now()
-			mutex.Lock()
-			addToLog = append(addToLog, func() tea.Msg {
-				return sender.ResultMsg{
-					Food:     dir,
-					Duration: time.Since(currentTime),
-				}
-			})
-			mutex.Unlock()
-		}(dir)
-	}
-
-	wg.Wait()
-
-	return tea.Batch(msg, tea.Batch(addToLog...)) // Adjusted for Bubbletea's Batch usage.
+	return tea.Batch(msg) // Adjusted for Bubbletea's Batch usage.
 }
 
 func checkSubdirectoriesRecursively(directory string, maxChildren int) ([]string, error) {
@@ -92,7 +70,7 @@ func checkSubdirectoriesRecursively(directory string, maxChildren int) ([]string
 			// If more than maxChildren, recursively process each subdirectory
 			for _, subDir := range subDirs {
 				if err := processDir(subDir); err != nil {
-					return err
+					continue
 				}
 			}
 		} else {
@@ -123,7 +101,12 @@ func processDirectory(m *model, filter int, currentMsg writeFilesMsg) tea.Cmd {
 			wg:      currentMsg.wg,
 		}
 	}
-	return tea.Tick(time.Millisecond, sendAgain)
+	resultMsg := func() tea.Msg {
+		return sender.ResultMsg{
+			Food: currentMsg.dirs[0],
+		}
+	}
+	return tea.Batch(resultMsg, tea.Tick(time.Millisecond, sendAgain))
 }
 
 func formatWithComma(i int) string {

@@ -17,17 +17,18 @@ import (
 )
 
 type model struct {
-	DataSet              *entities.DataSet
-	menus                []Menu
-	overwrite            bool
-	progress             progress.Model
-	showProgress         bool
-	textInput            textinput.Model
-	showTextInput        bool
-	multiTextInput       textinputs.Model
-	showMultiInput       bool
-	sender               sender.Model
-	senderActiveDuration time.Duration
+	DataSet                *entities.DataSet
+	menus                  []Menu
+	overwrite              bool
+	progress               progress.Model
+	progressActiveDuration time.Duration
+	showProgress           bool
+	textInput              textinput.Model
+	showTextInput          bool
+	multiTextInput         textinputs.Model
+	showMultiInput         bool
+	sender                 sender.Model
+	senderActiveDuration   time.Duration
 }
 
 type Menu struct {

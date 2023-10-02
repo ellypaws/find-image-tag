@@ -21,16 +21,10 @@ func (m model) View() string {
 		} else {
 			m.menus[menuID].Menu.SetStyles(unfocused)
 		}
-		//view += m.menus[menuID].Menu.View() + "\n"
 	}
 
 	// TODO: Fix height viewport
-	//view += m.menu[2].View() + "\n"
-	//for _, menu := range m.menu {
-	//	table := menu.View() + "\n"
-	//	view += baseStyle.Render(table) + "\n"
-	//}
-	//view += m.table.View() + "\n"
+
 	if m.showProgress {
 		view += m.progress.View() + "\n"
 	}
@@ -50,7 +44,6 @@ func (m model) View() string {
 	if m.sender.Active {
 		view += m.sender.View() + "\n"
 	}
-	//view += m.sender.View() + "\n"
 
 	return view
 }

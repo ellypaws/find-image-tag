@@ -69,7 +69,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.menus[msg.Menu].Menu.Focus()
 		return m, Refresh()
-
 	case tea.WindowSizeMsg:
 		m.progress.Width = msg.Width - padding*2 - 4
 		if m.progress.Width > maxWidth {
@@ -77,26 +76,44 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	case writeFilesMsg:
-		if msg.current%1 == 0 {
-			currentProgress := float64(msg.current) / float64(msg.total)
+		if !m.showProgress {
+			m.showProgress = true
+		}
+		m.progressActiveDuration = 2 * time.Second
+		currentProgress := float64(msg.current) / float64(msg.total)
+		currentPercent := m.progress.Percent()
+
+		// only set if currentProgress is 1% higher than currentPercent
+		if currentProgress >= currentPercent+0.01 {
 			cmd = m.progress.SetPercent(currentProgress)
 		}
 
-		if msg.current < msg.total {
+		if len(msg.dirs) > 0 {
 			processDirectoryMsg := processDirectory(&m, AddBoth, msg)
 			return m, tea.Batch(cmd, processDirectoryMsg)
 		} //else {
 		//	m.showProgress = false
 		//}
+		// showProgress gets set off in tickMsg instead
 		return m, cmd
 	case tickMsg:
 		m.senderActiveDuration -= 100 * time.Millisecond
 		if m.senderActiveDuration <= 0 {
 			m.sender.Active = false
-			m.showProgress = false
 
 			// clear all results
 			m.sender = sender.NewModel()
+		}
+
+		m.progressActiveDuration -= 100 * time.Millisecond
+		if m.progressActiveDuration <= 0 {
+			m.showProgress = false
+
+			// clear progress
+			m.progress = progress.New(progress.WithDefaultGradient())
+		}
+
+		if m.progressActiveDuration == 0 || m.senderActiveDuration == 0 {
 			return m, Refresh()
 		}
 
