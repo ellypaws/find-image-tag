@@ -18,7 +18,6 @@ import (
 
 type model struct {
 	DataSet              *entities.DataSet
-	table                table.Model
 	menus                []Menu
 	overwrite            bool
 	progress             progress.Model
@@ -38,25 +37,6 @@ type Menu struct {
 }
 
 func Main() {
-	columns := []table.Column{
-		{Title: "Rank", Width: 4},
-		{Title: "City", Width: 10},
-		{Title: "Country", Width: 10},
-		{Title: "Population", Width: 10},
-	}
-
-	rows := []table.Row{
-		{"1", "Tokyo", "Japan", "37,274,000"},
-		{"2", "Delhi", "India", "32,065,760"},
-	}
-
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(false),
-		table.WithHeight(12),
-	)
-
 	focused = table.DefaultStyles()
 	focused.Header = focused.Header.
 		BorderStyle(lipgloss.NormalBorder()).
@@ -67,7 +47,6 @@ func Main() {
 		Foreground(lipgloss.Color("229")).
 		Background(lipgloss.Color("57")).
 		Bold(false)
-	t.SetStyles(focused)
 
 	unfocused = table.DefaultStyles()
 	unfocused.Header = unfocused.Header.
@@ -79,7 +58,6 @@ func Main() {
 		Foreground(lipgloss.Color("#bbbbbb"))
 
 	m := model{
-		table:          t,
 		progress:       progress.New(progress.WithDefaultGradient()),
 		textInput:      autocomplete.Init(),
 		menus:          model{}.NewMenu(),
@@ -87,15 +65,6 @@ func Main() {
 		multiTextInput: textinputs.InitialModel(),
 		sender:         sender.NewModel(),
 	}
-
-	//m.DataSet.Images["testImage1"] = &entities.Image{
-	//	"testImage1.jpg",
-	//	".jpg",
-	//	"F:\\lora",
-	//	0,
-	//	nil,
-	//	entities.Caption{},
-	//}
 
 	// set styles for each menu
 	for menuID, currentMenu := range m.menus {

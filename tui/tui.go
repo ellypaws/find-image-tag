@@ -82,7 +82,7 @@ func checkSubdirectoriesRecursively(directory string, maxChildren int) ([]string
 			return err
 		}
 
-		subDirs := []string{}
+		var subDirs []string
 		for _, entry := range entries {
 			if entry.IsDir() {
 				subDirPath := filepath.Join(currentDir, entry.Name())
@@ -126,29 +126,6 @@ func processDirectory(m *model, filter int, currentMsg writeFilesMsg) tea.Cmd {
 		}
 	}
 	return tea.Tick(time.Millisecond, sendAgain)
-}
-
-func addOne(num string) string {
-	num = strings.Replace(num, ",", "", -1)
-	newNum, _ := strconv.Atoi(num)
-	newNum++
-	newNumString := formatWithComma(newNum)
-	return newNumString
-}
-
-func addPopulation(population string) tea.Cmd {
-	newPopString := addOne(population)
-	return func() tea.Msg {
-		return popMsg(newPopString)
-	}
-}
-
-func addCountImages(count string, row int) tea.Cmd {
-	newCountString := addOne(count)
-	updateNumReturn := updateNum{tableID: 0, row: row, column: 0, num: newCountString}
-	return func() tea.Msg {
-		return updateNumReturn
-	}
 }
 
 func formatWithComma(i int) string {

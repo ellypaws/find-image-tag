@@ -115,12 +115,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				toUpdate = &modelToUpdate.SelectedRow()[0]
 			}
 		}
-
-		if m.table.Focused() {
-			modelToUpdate = &m.table
-			toUpdate = &modelToUpdate.SelectedRow()[3]
-		}
-
 		numString = *toUpdate
 		numString = strings.Replace(numString, ",", "", -1)
 		newNum, _ := strconv.Atoi(numString)
@@ -144,10 +138,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.showProgress = false
 		}
 		return m, cmd
-	case popMsg:
-		s := string(msg)
-		m.table.SelectedRow()[3] = s
-		m.table.UpdateViewport() // this is how we update after
 	case msgToPrint:
 		return m, tea.Printf(string(msg))
 	case directoryPrompt:
@@ -241,12 +231,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 		switch msg.String() {
-		case "esc":
-			if m.table.Focused() {
-				m.table.Blur()
-			} else {
-				m.table.Focus()
-			}
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
@@ -299,7 +283,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// update tables
 	var batch []tea.Cmd
-	m.table, cmd = m.table.Update(msg)
 	for menuID, currentMenu := range m.menus {
 		m.menus[menuID].Menu, cmd = currentMenu.Menu.Update(msg)
 		batch = append(batch, cmd)
@@ -319,7 +302,6 @@ type updateNum struct {
 	row     int
 	column  int
 }
-type popMsg string
 type percentMsg float64
 type addMultipleMsg struct {
 	current int
