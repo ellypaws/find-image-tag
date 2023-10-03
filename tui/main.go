@@ -30,12 +30,6 @@ type model struct {
 	sender                 sender.Model
 }
 
-type Menu struct {
-	Menu       table.Model
-	UpdateFunc Keys
-	EnterFunc  EnterActions
-}
-
 func Main() {
 	focused = table.DefaultStyles()
 	focused.Header = focused.Header.

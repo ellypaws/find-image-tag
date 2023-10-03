@@ -256,12 +256,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			for tableID, currentMenu := range m.menus {
 				if currentMenu.Menu.Focused() {
-					if ok := currentMenu.EnterFunc[currentMenu.Menu.Cursor()]; ok != nil {
+					if ok := currentMenu.EnterFunction[currentMenu.Menu.Cursor()]; ok != nil {
 						if tableID != 0 {
 							m.menus[tableID].Menu.Blur()
 						}
-						cmd = ok(m, cmd)
-						return m, cmd
+						newModel, cmd := m.Update(ok)
+						return newModel.(model), cmd
 					}
 				}
 			}

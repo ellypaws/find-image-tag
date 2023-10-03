@@ -6,30 +6,29 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type Menu struct {
+	Menu          table.Model
+	UpdateFunc    []CountRow
+	EnterFunction []tea.Msg
+}
+
 type CountFunction func(m model, tableID int, row int, column int) tea.Cmd
 type CountRow []CountFunction
-type Keys []CountRow
-
-type EnterFunction func(m model, c tea.Cmd) tea.Cmd
-type EnterActions []EnterFunction
 
 // {CountFunction, CountFunction, CountFunction} --> countRow  ||
 // {CountFunction, CountFunction, CountFunction} -- > countRow || --> keys
 // {CountFunction, CountFunction, CountFunction} -- > countRow ||
 
 func (m model) NewMenu() []Menu {
-	stats, statsKeys, statsEnter := m.statsTable()
-	captions, captionsKeys, captionsEnter := m.captionsTable()
-	actions, actionsKeys, actionsEnter := m.actionsTable()
 
 	return []Menu{
-		{stats, statsKeys, statsEnter},
-		{captions, captionsKeys, captionsEnter},
-		{actions, actionsKeys, actionsEnter},
+		m.statsTable(),
+		m.captionsTable(),
+		m.actionsTable(),
 	}
 }
 
-func (m model) statsTable() (tbl table.Model, keys Keys, enter EnterActions) {
+func (m model) statsTable() Menu {
 	columns := []table.Column{
 		{Title: "#", Width: 6},
 		{Title: "Stats", Width: 50},
@@ -42,40 +41,35 @@ func (m model) statsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 		{"0", "Pending text files"},
 	}
 
-	values := Keys{
+	values := []CountRow{
 		{CountImagesWithCaptions},
 		{CountCaptionDirectoryMatchImageDirectory},
 		{CountImagesWithoutCaptions},
 		{CountPending},
 	}
 
-	function := EnterActions{
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg {
-				return sender.ResultMsg{Food: "test"}
-			}
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return Refresh()
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return Refresh()
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return Refresh()
-
-		},
+	function := []tea.Msg{
+		sender.ResultMsg{Food: "test"},
+		startCount(true),
+		startCount(true),
+		startCount(true),
 	}
 
-	return table.New(
+	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
 		table.WithHeight(4),
-	), values, function
+	)
+
+	return Menu{
+		Menu:          t,
+		UpdateFunc:    values,
+		EnterFunction: function,
+	}
 }
 
-func (m model) captionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
+func (m model) captionsTable() Menu {
 	columns := []table.Column{
 		{Title: "#", Width: 6},
 		{Title: "Captions", Width: 50},
@@ -94,7 +88,7 @@ func (m model) captionsTable() (tbl table.Model, keys Keys, enter EnterActions) 
 		{" ", "Quit"},
 	}
 
-	values := Keys{
+	values := []CountRow{
 		{CountFiles},
 		{CountTotalCaptions},
 		{CountImages},
@@ -107,48 +101,35 @@ func (m model) captionsTable() (tbl table.Model, keys Keys, enter EnterActions) 
 		{nul},
 	}
 
-	function := EnterActions{
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return directoryPrompt(AddBoth) }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return directoryPrompt(AddCaption) }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return directoryPrompt(AddImage) }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{CaptionsMenu, CheckExist} }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{CaptionsMenu, Print} }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{CaptionsMenu, Reset} }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{CaptionsMenu, WriteJSON} }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{CaptionsMenu, Append} }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{CaptionsMenu, CheckMissing} }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{CaptionsMenu, Quit} }
-		},
+	function := []tea.Msg{
+		directoryPrompt(AddBoth),
+		directoryPrompt(AddCaption),
+		directoryPrompt(AddImage),
+		Actions{CaptionsMenu, CheckExist},
+		Actions{CaptionsMenu, Print},
+		Actions{CaptionsMenu, Reset},
+		Actions{CaptionsMenu, WriteJSON},
+		Actions{CaptionsMenu, Append},
+		Actions{CaptionsMenu, CheckMissing},
+		Actions{CaptionsMenu, Quit},
 	}
 
-	return table.New(
+	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(false),
 		table.WithHeight(10),
-	), values, function
+	)
+
+	return Menu{
+		Menu:          t,
+		UpdateFunc:    values,
+		EnterFunction: function,
+	}
+
 }
 
-func (m model) actionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
+func (m model) actionsTable() Menu {
 	columns := []table.Column{
 		{Title: "Current", Width: 8},
 		{Title: "New", Width: 6},
@@ -164,7 +145,7 @@ func (m model) actionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 		{" ", " ", " ", "Replace spaces with [_]"},
 	}
 
-	values := Keys{
+	values := []CountRow{
 		{CountImagesWithCaptionsNextToThem, CountOverwrites, CountImagesWithCaptions},
 		{CountImagesWithCaptionsNextToThem, CountOverwrites, CountImagesWithCaptions},
 		{nul, nul, CountCaptionsToMerge},
@@ -172,28 +153,25 @@ func (m model) actionsTable() (tbl table.Model, keys Keys, enter EnterActions) {
 		{nul, nul, nul},
 	}
 
-	function := EnterActions{
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{ActionsMenu, MoveCaptions} }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{ActionsMenu, Hardlink} }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{ActionsMenu, Merge} }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{ActionsMenu, AddTags} }
-		},
-		func(m model, c tea.Cmd) tea.Cmd {
-			return func() tea.Msg { return Actions{ActionsMenu, Underscores} }
-		},
+	function := []tea.Msg{
+		Actions{ActionsMenu, MoveCaptions},
+		Actions{ActionsMenu, Hardlink},
+		Actions{ActionsMenu, Merge},
+		Actions{ActionsMenu, AddTags},
+		Actions{ActionsMenu, Underscores},
 	}
 
-	return table.New(
+	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(false),
 		table.WithHeight(7),
-	), values, function
+	)
+
+	return Menu{
+		Menu:          t,
+		UpdateFunc:    values,
+		EnterFunction: function,
+	}
+
 }
