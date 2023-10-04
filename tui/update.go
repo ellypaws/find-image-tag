@@ -65,6 +65,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case AddTags:
 				i = Underscores
 				m.showMultiInput = true
+			case Underscores:
+				// TODO: Log each file in DataSet that gets replaced
+				m.DataSet.ReplaceSpaces()
 			}
 		}
 		m.menus[msg.Menu].Menu.Focus()
@@ -222,7 +225,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					dirToMultiple := m.singleDirToMultiple(int(i), m.textInput.Value())
 					m.menus[0].Menu.Focus()
 					return m, dirToMultiple
-				case Underscores:
+				case AddTags:
 					m.showMultiInput = false
 					entities.AppendNewTags(m.multiTextInput.Inputs[0].Value(), m.multiTextInput.Inputs[1].Value())
 					m.menus[2].Menu.Focus()
